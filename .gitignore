@@ -1,0 +1,11 @@
+.DS_Store
+/npm-debug.log
+/node_modules
+
+/.*-ok
+/build/
+/dist/
+
+/demo/va6.min.js
+/demo/va6.min.js.map
+/demo/index.html
