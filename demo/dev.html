@@ -22,9 +22,6 @@ section {
     <title>va6 demo</title>
   </head>
   <body style="background-color:black; color:white; padding:0; margin:0; overscroll-behavior:none;">
-    <!-- VA6_SRCS -->
-    <!-- VA6_SRCS -->
-
     <div id="github-ribbon"><a href="https://github.com/ayamada/va6" target="_blank"><img alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" style="position: absolute; top: 0; right: 0; border: 0; z-index: 10000"></a></div>
 
     <div style="background-color:white; color:black; padding:0.5em; margin:0.5em;">
@@ -61,9 +58,6 @@ var music2 = "./dandd.m4a";
 //va6.setConfig("is-output-error-log", true);
 //va6.setConfig("is-output-debug-log", true);
       </code></pre>
-      <script type="text/javascript">
-        eval(document.getElementById("initCode").textContent);
-      </script>
 
       <hr />
 
@@ -102,5 +96,26 @@ var music2 = "./dandd.m4a";
       <div><a href="#top">▲Go to top</a></div>
 
     </div>
+
+    <script type="text/javascript">
+      (function(){
+        function loadScript (path) {
+          var script = document.createElement('script');
+          script.type = 'text/javascript';
+          script.src = path;
+          script.async = false;
+          script.defer = false;
+          document.body.appendChild(script);
+        }
+
+        document.body.onload = function () {
+          eval(document.getElementById("initCode").textContent);
+        };
+
+        loadScript("../src/va6/webaudio.js");
+        loadScript("../src/va6_interface.js");
+      })()
+    </script>
+
   </body>
 </html>
