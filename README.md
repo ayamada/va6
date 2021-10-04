@@ -8,7 +8,7 @@
 
 See online demo
 
-http://va6.tir.jp/demo/
+https://va6.tir.jp/demo/
 
 
 # ChangeLog

@@ -35,14 +35,24 @@ open http://localhost:8001/demo/dev.html
 
 どこからやるか
 
-- まず最初に、dev.htmlベースで開発できる環境まで作る
-    - できた
-    - 次に、ユーザー操作を監視してAudioContextを生成するところを実装
-    - 次に、できてるAudioContextをPromiseで返すやつと、状態を見れる関数を実装
-    - 次に、OfflineAudioContextの提供
+- va6/config の実装
+    - 基礎はできた。今はまだlog回りの設定項目しか入れてない。項目は他の実装と共に増やす想定
+- va6/webaudio の実装の残り
+    - とりあえずchromeOptimizedができたら一旦完了 → できた
+    - 最後に、各バッドノウハウを満たしているか再確認する事
+        - https://qiita.com/zprodev/items/7fcd8335d7e8e613a01f
+        - ...
+        - ...
+    - 続きはまた後で
 
+
+- 今回は、各*.jsのロード順が厳密に決められていないといけないっぽい。それなら全部 `va6_` ではなく `va6/` にしてしまってよいのでは？あるいはprefix自体いらない？
 
 ## 一時メモ
+
+- https://github.com/loov/jsfx/blob/master/jsfx.js
+    - これを参考に、on the flyでSEを生成する部分を実装する
+
 
 - https://qiita.com/zprodev/items/7fcd8335d7e8e613a01f
 
@@ -58,12 +68,6 @@ open http://localhost:8001/demo/dev.html
 
 
 
-
-
-chromeで、以下のwarningが出ないようにする
-https://developers.google.com/web/updates/2017/09/autoplay-policy-changes#webaudio
-
-- addEventHandlerでのアンロックの実装
 
 
 

@@ -54,9 +54,8 @@ var sound2 = "./piin.m4a";
 var music1 = "./cntr2.m4a";
 var music2 = "./dandd.m4a";
 
-//va6.setConfig("is-pause-on-background", true);
-//va6.setConfig("is-output-error-log", true);
-//va6.setConfig("is-output-debug-log", true);
+va6.config.isDisplayErrorLog = true;
+va6.config.isDisplayDebugLog = true;
       </code></pre>
 
       <hr />
@@ -112,6 +111,11 @@ var music2 = "./dandd.m4a";
           eval(document.getElementById("initCode").textContent);
         };
 
+        //loadScript("../src/va6_license.js");
+        //loadScript("../src/va6_ccinfo.js");
+        //loadScript("../src/va6_version.js");
+        loadScript("../src/va6_log.js");
+        loadScript("../src/va6_config.js");
         loadScript("../src/va6/webaudio.js");
         loadScript("../src/va6_interface.js");
       })()

@@ -5,11 +5,18 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global[namespace] = {}));
 }(this, (function (exports) { 'use strict';
 
-
   var root = {};
   if (typeof window !== 'undefined') { root = window; }
   else if (typeof global !== 'undefined') { root = global; }
+  function importLoadedModule (namespace) {
+    var m = root[namespace];
+    if (!m) { throw new Error(namespace + " not found"); }
+    return m;
+  }
 
+
+  var log = importLoadedModule('va6/log');
+  var config = importLoadedModule('va6/config');
 
 
   function resolveAudioContextClass () {
@@ -34,7 +41,12 @@
   }
 
   exports.isActivatedAudioContext = function () { return !!ac; };
+  exports.getAudioContext = function () {
+    exports.init();
+    return ac;
+  };
   exports.getAudioContextAsync = function () {
+    exports.init();
     return new Promise(waitAudioContext);
   };
 
@@ -46,11 +58,12 @@
 
 
 
-  function detectActivationType () {
+  function detectActivationType (options) {
     var type = "others";
+    if (options.isSkipChromiumOptimize) { return type; }
     if (navigator.userAgentData) {
       navigator.userAgentData.brands.forEach(function (entry) {
-        if (entry.brand.toLowerCase().indexOf("chromium") !== -1) {
+        if (entry.brand.toLowerCase().indexOf("chromium") != -1) {
           type = "chromium";
         }
       });
@@ -58,43 +71,96 @@
     return type;
   }
 
-  // chromiumに最適化されたハンドル設定を行う
-  function setupChromium () {
+  // chromiumに最適化されたハンドル設定を行う(constructor実装)
+  function setupChromiumOptimized () {
     var acc = resolveAudioContextClass();
-    throw new Error("not implemented yet");
-    //ac = new acc();
+    (["touchend", "mouseup"]).forEach(function (k) {
+      var h = null;
+      h = function (e) {
+        // NB: 何度もリトライする必要があるかもしれない
+        var acTmp = new acc();
+        if (acTmp.state == "suspended") {
+          log.debug(["setupChromiumOptimized", "failed to create ac, retry"]);
+          acTmp.close();
+          return;
+        }
+        document.removeEventListener(k, h, false);
+        log.debug(["setupChromiumOptimized", "succeeded to create ac"]);
+        ac = acTmp;
+      };
+      document.addEventListener(k, h, false);
+    });
   }
 
-  // safari向けのハンドル設定を行う(ただしchromium向けの対応も含む)
-  function setupCommon () {
-    var acTmp = new (resolveAudioContextClass())();
-    function playSilence () { acTmp.createBufferSource().start(0); }
+  // chromium向けハンドル設定を行う(resume実装)
+  // NB: AudioContextをsuspendする場合、この処理が誤判定を起こすケースがある。
+  //     バックグラウンド化等で一時停止したい場合であっても、
+  //     AudioContextをsuspendするのは避けた方がよい。
+  //     (そうではなくAudioSourceの方を一時停止させた方がよい)
+  function setupChromium(acTmp) {
+    var isResumeRunning = false; // TODO: これを使うかはよく分からない、要確認
 
-    // resumeによるchrome向け対応
-    // TODO
-    // function makeHandleResume (k) {
-    //   function handle (e) {
-    //     // NB: こっちのunlockは何度か行う必要がある
-    //     //     (doResume()が偽値を返したら次のイベントでまたリトライする)
-    //     if (!doResume()) { return; }
-    //     document.removeEventListener(k, handle, false);
-    //   }
-    //   return handle;
-    // }
-    // var resumeKeys = ["touchstart", "touchend", "mousedown", "keydown"];
-    // resumeKeys.forEach(function (k) {
-    //   document.addEventListener(k, makeHandleResume(k), false);
-    // });
-    // ac = acTmp;
+    function doResume () {
+      // アンロックが完了している場合はそのまま終わる
+      if (ac) { return true; }
+      if (!acTmp.resume) {
+        // resume機能を持っていない。そのままいける筈
+        log.debug(["doResume", "resume not found, already unlocked"]);
+        return true;
+      }
+      if (acTmp.state !== "suspended") {
+        // unlock完了
+        log.debug(["doResume", "already unlocked"]);
+        return true;
+      }
+      if (isResumeRunning) {
+        // 既にresume実行中で終了を待っている場合は、次回またチェックする
+        log.debug(["doResume", "waiting"]);
+        return false;
+      }
+      // resumeを実行する
+      log.debug(["doResume", "try to resume"]);
+      isResumeRunning = true;
+      acTmp.resume().then(
+        function () {
+          isResumeRunning = false;
+          log.debug(["doResume", "succeeded to resume"]);
+          ac = acTmp;
+        },
+        function () {
+          // resume失敗は適切なhandle外での実行しかない想定。
+          // リトライできるよう再設定する
+          isResumeRunning = false;
+          log.debug(["doResume", "failed to resume, retry"]);
+        });
+      // まだresumeが成功したかは分からないのでtrueは返せない
+      return false;
+    }
+    (["touchend", "mouseup"]).forEach(function (k) {
+      var h = null;
+      h = function (e) {
+        // NB: 何度もリトライする必要がある
+        //     (doResume()が偽値を返したら次のイベントでまたリトライする)
+        if (!doResume()) { return; }
+        document.removeEventListener(k, h, false);
+        ac = acTmp;
+      };
+      document.addEventListener(k, h, false);
+    });
+  }
 
-    // safari向け対応
+
+  function setupSafari (acTmp) {
     function handlePlay (e) {
-      playSilence();
+      var bs = acTmp.createBufferSource();
+      bs.start();
+      bs.stop();
       document.removeEventListener("touchstart", handlePlay, false);
       ac = acTmp;
     }
     document.addEventListener("touchstart", handlePlay, false);
   }
+
 
   var isStartedInit = false;
   exports.init = function (options) {
@@ -112,13 +178,17 @@
     // アンロックの仕様がブラウザによって違う。
     // chromiumはマウスイベントでインスタンス生成だが、
     // safariおよび他は事前にインスタンスを生成し、マウスイベントで無音再生。
-    // TODO: 引数指定によって、強制的に常にothersにする機能があってもよい
-    var activationType = detectActivationType();
-    if (!options.isSkipUnlock && !options.isSkipOptimizeChromium && (activationType == "chromium")) {
-      setupChromium();
+    var activationType = detectActivationType(options);
+    if (options.isSkipUnlock) {
+      ac = new acc();
     }
-    else if (!options.isSkipUnlock && (activationType == "others")) {
-      setupCommon();
+    else if (activationType == "chromium") {
+      setupChromiumOptimized();
+    }
+    else if (activationType == "others") {
+      var acTmp = new (resolveAudioContextClass())();
+      setupChromium(acTmp);
+      setupSafari(acTmp);
     }
     else {
       ac = new acc();
