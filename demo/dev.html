@@ -111,13 +111,17 @@ va6.config.isDisplayDebugLog = true;
           eval(document.getElementById("initCode").textContent);
         };
 
-        //loadScript("../src/va6_license.js");
-        //loadScript("../src/va6_ccinfo.js");
-        //loadScript("../src/va6_version.js");
-        loadScript("../src/va6_log.js");
-        loadScript("../src/va6_config.js");
-        loadScript("../src/va6/webaudio.js");
-        loadScript("../src/va6_interface.js");
+        //var targets = ["../dist/va6.min.js"];
+        var targets = [
+          //"../src/va6/license.js",
+          //"../src/va6/ccinfo.js",
+          //"../src/va6/version.js",
+          "../src/va6/log.js",
+          "../src/va6/config.js",
+          "../src/va6/webaudio.js",
+          "../src/va6/interface.js"
+        ];
+        targets.forEach(loadScript);
       })()
     </script>
 
