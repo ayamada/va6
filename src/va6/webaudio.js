@@ -30,6 +30,28 @@
 
   var ac = null;
   var initError = null;
+  var masterGainNode = null;
+
+
+
+  exports.setVolumeMaster = function (volume) {
+    if (!masterGainNode) { return; }
+    masterGainNode.gain.value = volume;
+    return;
+  };
+
+
+
+
+
+  function setupAudioContext (newAc) {
+    ac = newAc;
+    masterGainNode = ac.createGain();
+    masterGainNode.gain.value = config.proxy.volumeMaster;
+    masterGainNode.connect(ac.destination);
+    // NB: もっとグラフを構築する必要があるなら、ここで行う
+  }
+
 
   function waitAudioContext (done, err) {
     if (ac) { return done(ac); }
@@ -86,7 +108,7 @@
         }
         document.removeEventListener(k, h, false);
         log.debug(["setupChromiumOptimized", "succeeded to create ac"]);
-        ac = acTmp;
+        setupAudioContext(acTmp);
       };
       document.addEventListener(k, h, false);
     });
@@ -105,33 +127,33 @@
       if (ac) { return true; }
       if (!acTmp.resume) {
         // resume機能を持っていない。そのままいける筈
-        log.debug(["doResume", "resume not found, already unlocked"]);
+        log.debug(["setupChromium", "resume not found, already unlocked"]);
         return true;
       }
       if (acTmp.state !== "suspended") {
         // unlock完了
-        log.debug(["doResume", "already unlocked"]);
+        log.debug(["setupChromium", "already unlocked"]);
         return true;
       }
       if (isResumeRunning) {
         // 既にresume実行中で終了を待っている場合は、次回またチェックする
-        log.debug(["doResume", "waiting"]);
+        log.debug(["setupChromium", "waiting"]);
         return false;
       }
       // resumeを実行する
-      log.debug(["doResume", "try to resume"]);
+      log.debug(["setupChromium", "try to resume"]);
       isResumeRunning = true;
       acTmp.resume().then(
         function () {
           isResumeRunning = false;
-          log.debug(["doResume", "succeeded to resume"]);
-          ac = acTmp;
+          log.debug(["setupChromium", "succeeded to resume"]);
+          setupAudioContext(acTmp);
         },
         function () {
           // resume失敗は適切なhandle外での実行しかない想定。
           // リトライできるよう再設定する
           isResumeRunning = false;
-          log.debug(["doResume", "failed to resume, retry"]);
+          log.debug(["setupChromium", "failed to resume, retry"]);
         });
       // まだresumeが成功したかは分からないのでtrueは返せない
       return false;
@@ -143,10 +165,28 @@
         //     (doResume()が偽値を返したら次のイベントでまたリトライする)
         if (!doResume()) { return; }
         document.removeEventListener(k, h, false);
-        ac = acTmp;
+        setupAudioContext(acTmp);
       };
       document.addEventListener(k, h, false);
     });
+  }
+
+
+  function setupFirefox (acTmp) {
+    // firefoxでは、生成直後はsuspendedだが何もしなくてもすぐrunningになる。
+    // しかし、それを待つ必要はある
+    if (acTmp.state == "suspended") {
+      // まだsuspendedならリトライする(うざいのでログは出さない…)
+      setTimeout(setupFirefox.bind(undefined, acTmp), 100);
+    }
+    else if (acTmp.state == "running") {
+      log.debug(["setupFirefox", "succeeded to create ac"]);
+      setupAudioContext(acTmp);
+    }
+    else {
+      // closedなら何もせず終了する
+      log.debug(["setupFirefox", "ac already closed"]);
+    }
   }
 
 
@@ -156,7 +196,7 @@
       bs.start();
       bs.stop();
       document.removeEventListener("touchstart", handlePlay, false);
-      ac = acTmp;
+      setupAudioContext(acTmp);
     }
     document.addEventListener("touchstart", handlePlay, false);
   }
@@ -180,18 +220,21 @@
     // safariおよび他は事前にインスタンスを生成し、マウスイベントで無音再生。
     var activationType = detectActivationType(options);
     if (options.isSkipUnlock) {
-      ac = new acc();
+      setupAudioContext(new acc());
     }
     else if (activationType == "chromium") {
       setupChromiumOptimized();
     }
     else if (activationType == "others") {
       var acTmp = new (resolveAudioContextClass())();
+      setupFirefox(acTmp);
       setupChromium(acTmp);
       setupSafari(acTmp);
+      return;
     }
     else {
-      ac = new acc();
+      setupAudioContext(new acc());
+      return;
     }
   };
 
@@ -201,6 +244,61 @@
 
 
 
+
+  exports.disconnectNodeSafely = function (node) {
+    if (node == null) { return; }
+    if (!node.disconnect) {
+      log.error(["is not node", node]);
+      return;
+    }
+    try { node.disconnect(); } catch (e) { log.debug(e); }
+    if (node.buffer) {
+      try { node.buffer = null; } catch (e) { log.debug(e); }
+    }
+  };
+
+
+
+
+  exports.connectNode = function (sourceNode, volume, pan) {
+    if (!ac) { return null; }
+    if (volume == null) { volume = 1; }
+    if (pan == null) { pan = 0; }
+
+    var gainNode = ac.createGain();
+    gainNode.gain.value = volume;
+    sourceNode.connect(gainNode);
+
+    var pannerNode = null;
+    var pannerNodeType = null;
+    if (ac.createStereoPanner) {
+      pannerNodeType = "stereoPannerNode";
+      pannerNode = ac.createStereoPanner();
+      pannerNode.pan.value = pan;
+      gainNode.connect(pannerNode);
+      pannerNode.connect(masterGainNode);
+    }
+    else if (ac.createPanner) {
+      pannerNodeType = "pannerNode";
+      pannerNode = ac.createPanner();
+      pannerNode.panningModel = "equalpower";
+      pannerNode.setPosition(pan, 0, 1-Math.abs(pan));
+      gainNode.connect(pannerNode);
+      pannerNode.connect(masterGainNode);
+    }
+    else {
+      pannerNodeType = "none";
+      pannerNode = null;
+      gainNode.connect(masterGainNode);
+    }
+
+    return {
+      sourceNode: sourceNode,
+      gainNode: gainNode,
+      pannerNode: pannerNode,
+      pannerNodeType: pannerNodeType
+    };
+  };
 
 
 

@@ -16,6 +16,7 @@
 
 
   var log = importLoadedModule('va6/log');
+  var validate = importLoadedModule('va6/validate');
 
 
   var definitionTable = {};
@@ -50,12 +51,12 @@
     var oldValue = data[k];
     var newValue = v;
     if (definition.validator) {
-      newValue = definition.validator(v, oldValue);
+      newValue = definition.validator(oldValue, v);
     }
     if (oldValue === newValue) { return oldValue; }
     data[k] = newValue;
     if (definition.updateHandle) {
-      definition.updateHandle(newValue);
+      definition.updateHandle(oldValue, newValue);
     }
     return newValue;
   };
@@ -79,28 +80,22 @@
   // ----------------------------------------------------------------
 
 
-  function coerceBoolean (v) { return !!v; }
+  function coerceBoolean (oldV, newV) { return !!newV; }
+  function coerceVolume (oldV, newV) {
+    newV = validate.number("volumeMaster", 0, newV, 1, null);
+    return (newV == null) ? oldV : newV;
+  }
+
 
   defineConfig("isDisplayErrorLog", true, coerceBoolean, null);
   defineConfig("isDisplayDebugLog", false, coerceBoolean, null);
 
+  defineConfig("volumeMaster", 0.8, coerceVolume, function (oldV, newV) {
+    importLoadedModule('va6/webaudio').setVolumeMaster(newV);
+  });
 
   // TODO: 必要な項目をひたすらdefineConfig()していく
   // 以下はva5のもの
-//  /**
-//   * va5.getConfig("volume-master")
-//   * va5のあらゆる再生の音量倍率。変更すると即座に反映される。
-//   * デフォルト値0.8。
-//   * @name getConfigOption
-//   */
-//  defineConfig("volume-master", 0.8, function (newV, oldV) {
-//    newV = va5._validateNumber("volume-master", 0, newV, 1, null);
-//    return (newV == null) ? oldV : newV;
-//  }, function (v) {
-//    if (!va5._device) { return; }
-//    va5._device.setVolumeMaster(v);
-//  });
-//
 //  /**
 //   * va5.getConfig("volume-bgm")
 //   * va5.bgm()全体の音量倍率。変更すると即座に反映される。
