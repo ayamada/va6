@@ -45,11 +45,13 @@
     return data[k];
   };
 
+  var currentLabel = null; // validatorとupdateHandleの為の参照用
   exports.set = function (k, v) {
     var definition = resolveDefinition(k);
     if (!definition) { return null; }
     var oldValue = data[k];
     var newValue = v;
+    currentLabel = k;
     if (definition.validator) {
       newValue = definition.validator(oldValue, v);
     }
@@ -82,17 +84,27 @@
 
   function coerceBoolean (oldV, newV) { return !!newV; }
   function coerceVolume (oldV, newV) {
-    newV = validate.number("volumeMaster", 0, newV, 1, null);
+    newV = validate.number(currentLabel, 0, newV, 1, null);
     return (newV == null) ? oldV : newV;
+  }
+  function coerceInteger (oldV, newV) {
+    newV = validate.number(currentLabel, null, newV, null, null);
+    return (newV == null) ? oldV : Math.floor(newV);
   }
 
 
   defineConfig("isDisplayErrorLog", true, coerceBoolean, null);
   defineConfig("isDisplayDebugLog", false, coerceBoolean, null);
 
+
   defineConfig("volumeMaster", 0.8, coerceVolume, function (oldV, newV) {
     importLoadedModule('va6/webaudio').setVolumeMaster(newV);
   });
+
+
+  defineConfig("OAC_numberOfChannels", 2, coerceInteger, null);
+  defineConfig("OAC_sampleRate", 44100, coerceInteger, null);
+
 
   // TODO: 必要な項目をひたすらdefineConfig()していく
   // 以下はva5のもの

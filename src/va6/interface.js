@@ -37,6 +37,8 @@
   exports.createOfflineAudioContext = webaudio.createOfflineAudioContext;
   exports.init = webaudio.init;
   //exports.disconnectNodeSafely = webaudio.disconnectNodeSafely;
+  //exports.stopNodeSet = webaudio.stopNodeSet;
+  //exports.connectNode = webaudio.connectNode;
 
 
 
@@ -52,25 +54,47 @@
 
 
   // TODO: デバッグ用。最終的には消す。まずこれで音が出るようにし、そこから分化させていく
+  var debugBuf = null;
+  function prepareDebugBuf () {
+    var oac = exports.createOfflineAudioContext(0.5);
+    var osc = oac.createOscillator();
+    //var hz = 440;
+    var hz = 220 + Math.floor(Math.random()*440);
+    osc.type = "square"; // sine, square, sawtooth, triangle
+    osc.frequency.setValueAtTime(hz, 0);
+    osc.detune.setValueAtTime(0, 0);
+
+    osc.connect(oac.destination);
+    osc.start();
+    oac.startRendering().then(function(buf) {
+      debugBuf = buf;
+    });
+  }
+  prepareDebugBuf();
+
   exports.debug = function () {
     var ac = exports.getAudioContext();
     if (!ac) { return; }
-    var osc = ac.createOscillator();
-    osc.type = "square"; // sine, square, sawtooth, triangle
-    osc.frequency.setValueAtTime(440, ac.currentTime);
-    osc.detune.setValueAtTime(0, ac.currentTime);
-    var nodes = webaudio.connectNode(osc);
-    osc.start();
-    // TODO: SE的に、自動的に終わるようにするには？
-    //       調べた。va5のappendNodesの中で sourceNode.onended を設定し、
-    //       その中で終了処理を設定していた。
-    //       osc自体には「おわり」はないので、この手法は取れない…。
-    //       きちんとやる場合はoacからbufferを作るようにするしかないし、
-    //       最終的にはそうなるので、
-    //       ここでもそのように実装しておいた方がよい。
-    setTimeout(function () {
-      webaudio.disconnectNodeSafely(osc);
-    }, 200);
+
+    if (!debugBuf) { return; }
+
+    // TODO: この辺りの、bufをnodeSetにして再生する処理もwebaudio内に格納する事
+    var node = ac.createBufferSource();
+    node.buffer = debugBuf;
+    var nodeSet = webaudio.connectNode(node);
+    // TODO: onendedの部分もwebaudio名前空間に移動させる必要があるが…
+    node.onended = function () {
+      var isSlept = false; // TODO: どうやって取るか考える事
+      if (!isSlept) {
+        log.debug(["onended", nodeSet, "and shutdown"]);
+        webaudio.stopNodeSet(nodeSet);
+        webaudio.disconnectNodeSet(nodeSet);
+      }
+      else {
+        log.debug(["onended", nodeSet, "but slept (don't shutdown)"]);
+      }
+    };
+    node.start();
   };
 
 

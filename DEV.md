@@ -13,12 +13,16 @@ open http://localhost:8001/demo/dev.html
 
 ## TODO
 
+
+
+- safariで、setupSafariが動いてない(setupChroniumとsetupFirefoxが動いている)
+    - どこかミスってると思うので確認して直す事
+
+
+
+
 - どこから進めていくか決める必要がある
     - 動作確認の取れる部位から進めなくてはならない
-
-
-
-
 
 
 - package.json のメンテ

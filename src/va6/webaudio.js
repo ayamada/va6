@@ -72,10 +72,17 @@
     return new Promise(waitAudioContext);
   };
 
-  exports.createOfflineAudioContext = function (options) {
+  exports.createOfflineAudioContext = function (sec) {
     var oacc = resolveOfflineAudioContextClass();
     if (!oacc) { return null; }
-    return new oacc(options);
+    if (sec <= 0) { throw new Error("sec must be positive number"); }
+    var numberOfChannels = config.proxy.OAC_numberOfChannels;
+    var sampleRate = config.proxy.OAC_sampleRate;
+    return new oacc({
+      numberOfChannels: numberOfChannels,
+      sampleRate: sampleRate,
+      length: sampleRate * sec
+    });
   };
 
 
@@ -137,7 +144,7 @@
       }
       if (isResumeRunning) {
         // 既にresume実行中で終了を待っている場合は、次回またチェックする
-        log.debug(["setupChromium", "waiting"]);
+        log.debug(["setupChromium", "already running"]);
         return false;
       }
       // resumeを実行する
@@ -184,7 +191,6 @@
       setupAudioContext(acTmp);
     }
     else {
-      // closedなら何もせず終了する
       log.debug(["setupFirefox", "ac already closed"]);
     }
   }
@@ -258,8 +264,29 @@
   };
 
 
+  exports.stopNodeSet = function (nodeSet) {
+    if (!nodeSet) { return; }
+    try { nodeSet.gainNode.gain.value = 0; } catch (e) { log.debug(e); }
+    try { nodeSet.sourceNode.stop(); } catch (e) { log.debug(e); }
+    // if (nodeSet.sourceNode) { nodeSet.sourceNode.onended = null; } // TODO: これを実行するかはかなり悩む
+    //nodeSet.playEndedTimestamp = ac.currentTime; // TODO: これをするかはもうちょっと後で判断する
+  };
+
+  // NB: connectNodeが返したnodeSetを適切に切断除去する。
+  //     stopは事前に行っておくのが望ましいが、行ってなければここで行う。
+  exports.disconnectNodeSet = function (nodeSet) {
+    if (!nodeSet) { return null; }
+    exports.stopNodeSet(nodeSet);
+    exports.disconnectNodeSafely(nodeSet.sourceNode);
+    exports.disconnectNodeSafely(nodeSet.gainNode);
+    exports.disconnectNodeSafely(nodeSet.pannerNode);
+  };
 
 
+  // NB: 引数のsourceNodeを適切に接続する。ここではstartは行わないので注意。
+  //     (startは自前で行う必要がある)
+  //     返り値として、disconnectNodeSetに渡せるnodeSetを返すので、
+  //     きちんと保持しておく事。
   exports.connectNode = function (sourceNode, volume, pan) {
     if (!ac) { return null; }
     if (volume == null) { volume = 1; }
