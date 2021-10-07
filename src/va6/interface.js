@@ -64,6 +64,8 @@
     osc.frequency.setValueAtTime(hz, 0);
     osc.detune.setValueAtTime(0, 0);
 
+    // TODO: ボリュームを絞りたい。あとattack/decay/sustain/releaseっぽく制御したい
+
     osc.connect(oac.destination);
     osc.start();
     oac.startRendering().then(function(buf) {
@@ -78,7 +80,7 @@
 
     if (!debugBuf) { return; }
 
-    // TODO: この辺りの、bufをnodeSetにして再生する処理もwebaudio内に格納する事
+    // TODO: この辺りの、「bufをnodeにする処理」もwebaudio内に格納する事
     var node = ac.createBufferSource();
     node.buffer = debugBuf;
     var nodeSet = webaudio.connectNode(node);

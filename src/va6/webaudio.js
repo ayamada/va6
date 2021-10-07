@@ -45,11 +45,15 @@
 
 
   function setupAudioContext (newAc) {
+    if (ac) {
+      if (ac !== newAc) { try { newAc.close() } catch (e) {} }
+      return;
+    }
     ac = newAc;
     masterGainNode = ac.createGain();
     masterGainNode.gain.value = config.proxy.volumeMaster;
     masterGainNode.connect(ac.destination);
-    // NB: もっとグラフを構築する必要があるなら、ここで行う
+    // NB: メイングラフをもっと構築する必要があるなら、ここで行う
   }
 
 
@@ -153,7 +157,7 @@
       acTmp.resume().then(
         function () {
           isResumeRunning = false;
-          log.debug(["setupChromium", "succeeded to resume"]);
+          if (!ac) { log.debug(["setupChromium", "succeeded to resume"]); }
           setupAudioContext(acTmp);
         },
         function () {
@@ -187,7 +191,7 @@
       setTimeout(setupFirefox.bind(undefined, acTmp), 100);
     }
     else if (acTmp.state == "running") {
-      log.debug(["setupFirefox", "succeeded to create ac"]);
+      if (!ac) { log.debug(["setupFirefox", "succeeded to create ac"]); }
       setupAudioContext(acTmp);
     }
     else {
@@ -197,14 +201,18 @@
 
 
   function setupSafari (acTmp) {
-    function handlePlay (e) {
-      var bs = acTmp.createBufferSource();
-      bs.start();
-      bs.stop();
-      document.removeEventListener("touchstart", handlePlay, false);
-      setupAudioContext(acTmp);
-    }
-    document.addEventListener("touchstart", handlePlay, false);
+    (["touchstart", "mousedown"]).forEach(function (k) {
+      var h = null;
+      h = function (e) {
+        var bs = acTmp.createBufferSource();
+        bs.start();
+        bs.stop();
+        document.removeEventListener(k, h, false);
+        if (!ac) { log.debug(["setupSafari", "succeeded unlock ac"]); }
+        setupAudioContext(acTmp);
+      }
+      document.addEventListener(k, h, false);
+    });
   }
 
 
@@ -226,6 +234,7 @@
     // safariおよび他は事前にインスタンスを生成し、マウスイベントで無音再生。
     var activationType = detectActivationType(options);
     if (options.isSkipUnlock) {
+      log.debug(["skip to unlock ac"]);
       setupAudioContext(new acc());
     }
     else if (activationType == "chromium") {
@@ -239,6 +248,7 @@
       return;
     }
     else {
+      log.debug(["unknown activationType found", activationType]);
       setupAudioContext(new acc());
       return;
     }

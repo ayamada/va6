@@ -4,19 +4,11 @@
 
 ```
 npm i # or `npm ci` for build only
-
-(TODO)
-
-npx http-server -a 127.0.0.1 ./ -p 8001
+npm run dev
 open http://localhost:8001/demo/dev.html
 ```
 
 ## TODO
-
-
-
-- safariで、setupSafariが動いてない(setupChroniumとsetupFirefoxが動いている)
-    - どこかミスってると思うので確認して直す事
 
 
 
@@ -25,8 +17,9 @@ open http://localhost:8001/demo/dev.html
     - 動作確認の取れる部位から進めなくてはならない
 
 
+
+
 - package.json のメンテ
-    - http-serverをdevDependenciesに入れておく(npxできるように)
     - va5の Makefile 等を見ながら、npm run に移植していく
         - 同時にドキュメント等も整備する事
 
@@ -63,7 +56,7 @@ open http://localhost:8001/demo/dev.html
 
 
 - https://qiita.com/zprodev/items/7fcd8335d7e8e613a01f
-    - 音源の開放のところは、ここを見て実装する事
+    - 音源のunload処理は、ここを見て実装する事
 
 
 
