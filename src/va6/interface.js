@@ -34,11 +34,14 @@
   exports.isActivatedAudioContext = webaudio.isActivatedAudioContext;
   exports.getAudioContext = webaudio.getAudioContext;
   exports.getAudioContextAsync = webaudio.getAudioContextAsync;
+  exports.connectMasterGainNode = webaudio.connectMasterGainNode;
   exports.createOfflineAudioContext = webaudio.createOfflineAudioContext;
   exports.init = webaudio.init;
   //exports.disconnectNodeSafely = webaudio.disconnectNodeSafely;
   //exports.stopNodeSet = webaudio.stopNodeSet;
-  //exports.connectNode = webaudio.connectNode;
+  //exports.setVolume = webaudio.setVolume;
+  //exports.setPan = webaudio.setPan;
+  //exports.setupNodeSet = webaudio.setupNodeSet;
 
 
 
@@ -56,7 +59,8 @@
   // TODO: デバッグ用。最終的には消す。まずこれで音が出るようにし、そこから分化させていく
   var debugBuf = null;
   function prepareDebugBuf () {
-    var oac = exports.createOfflineAudioContext(0.5);
+    var sec = 0.5;
+    var oac = exports.createOfflineAudioContext(sec);
     var osc = oac.createOscillator();
     //var hz = 440;
     var hz = 220 + Math.floor(Math.random()*440);
@@ -64,12 +68,20 @@
     osc.frequency.setValueAtTime(hz, 0);
     osc.detune.setValueAtTime(0, 0);
 
-    // TODO: ボリュームを絞りたい。あとattack/decay/sustain/releaseっぽく制御したい
-
-    osc.connect(oac.destination);
+    var vol = 0.1;
+    var pan = 0;
+    var nodeSet = webaudio.setupNodeSet(oac, osc, vol, pan);
+    nodeSet.gainNode.connect(oac.destination);
+    // TODO: attack/decay/sustain/releaseっぽく制御したい。できるか？
+    // TODO: 音楽的に複数の音を出すには？
+    // TODO: この処理を汎用的にできるか？
     osc.start();
     oac.startRendering().then(function(buf) {
       debugBuf = buf;
+      osc.stop();
+      osc.disconnect();
+      webaudio.disconnectNodeSet(nodeSet);
+      //oac.close(); // OfflineAudioContextはcloseできないらしい
     });
   }
   prepareDebugBuf();
@@ -83,7 +95,8 @@
     // TODO: この辺りの、「bufをnodeにする処理」もwebaudio内に格納する事
     var node = ac.createBufferSource();
     node.buffer = debugBuf;
-    var nodeSet = webaudio.connectNode(node);
+    var nodeSet = webaudio.setupNodeSet(ac, node);
+    webaudio.connectMasterGainNode(node);
     // TODO: onendedの部分もwebaudio名前空間に移動させる必要があるが…
     node.onended = function () {
       var isSlept = false; // TODO: どうやって取るか考える事
@@ -100,8 +113,10 @@
   };
 
 
-  // TODO: この中でinitを実行してしまうかはとても悩む。少なくとも引数でオプションを指定したい場合はここで実行してはいけないのだが…
-  exports.init();
+  // nodeやworkers等でoacのみ使うケースがある
+  if (typeof window !== 'undefined') {
+    exports.init();
+  }
 
 
   Object.defineProperty(exports, '__esModule', { value: true });

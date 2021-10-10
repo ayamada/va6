@@ -38,5 +38,35 @@
 
 
 
+// from va5
+
+//  Assert.validateString = function (label, v, fallback) {
+//    if (typeof v !== 'string') {
+//      va5._logError("" + label + " must be a string, but found " + v + " (" + typeof v + ")");
+//      return fallback;
+//    }
+//    if (v === "") {
+//      va5._logError("" + label + " should not be empty string");
+//      return fallback;
+//    }
+//    return v;
+//  };
+
+//  // enums内にnullを含める事はできないのに注意
+//  Assert.validateEnum = function (label, v, enums, fallback) {
+//    var isFound = false;
+//    enums.forEach(function (e) { if (e === v) { isFound = true; } });
+//    if (!isFound) {
+//      va5._logError("" + label + " must be " +
+//        enums.map(JSON.stringify).join(" or ") + ", but found " + v +
+//        " (" + typeof v + ")");
+//      return fallback;
+//    }
+//    return v;
+//  };
+
+
+
+
   Object.defineProperty(exports, '__esModule', { value: true });
 })));

@@ -76,6 +76,13 @@
     return new Promise(waitAudioContext);
   };
 
+  exports.connectMasterGainNode = function (node) {
+    exports.init();
+    if (!masterGainNode) { return false; }
+    node.connect(masterGainNode);
+    return true;
+  };
+
   exports.createOfflineAudioContext = function (sec) {
     var oacc = resolveOfflineAudioContextClass();
     if (!oacc) { return null; }
@@ -282,7 +289,7 @@
     //nodeSet.playEndedTimestamp = ac.currentTime; // TODO: これをするかはもうちょっと後で判断する
   };
 
-  // NB: connectNodeが返したnodeSetを適切に切断除去する。
+  // NB: setupNodeSetが返したnodeSetを適切に切断除去する。
   //     stopは事前に行っておくのが望ましいが、行ってなければここで行う。
   exports.disconnectNodeSet = function (nodeSet) {
     if (!nodeSet) { return null; }
@@ -293,51 +300,64 @@
   };
 
 
-  // NB: 引数のsourceNodeを適切に接続する。ここではstartは行わないので注意。
-  //     (startは自前で行う必要がある)
+  exports.setVolume = function (nodeSet, volume) {
+    nodeSet.gainNode.gain.value = volume;
+  };
+
+
+  exports.setPan = function (nodeSet, pan) {
+    if (nodeSet.pannerNodeType == "stereoPannerNode") {
+      nodeSet.pannerNode.pan.value = pan;
+    }
+    else if (nodeSet.pannerNodeType == "pannerNode") {
+      nodeSet.pannerNode.setPosition(pan, 0, 1-Math.abs(pan));
+    }
+  };
+
+
+  // NB: 引数のsourceNodeに、geinNodeとpannerNodeを生やす。
   //     返り値として、disconnectNodeSetに渡せるnodeSetを返すので、
   //     きちんと保持しておく事。
-  exports.connectNode = function (sourceNode, volume, pan) {
-    if (!ac) { return null; }
+  //     この後に、返り値内のgainNodeをどこかにconnectする事。
+  exports.setupNodeSet = function (ctx, sourceNode, volume, pan) {
+    if (!ctx) { ctx = ac; }
+    if (!ctx) { return null; }
     if (volume == null) { volume = 1; }
     if (pan == null) { pan = 0; }
 
-    var gainNode = ac.createGain();
-    gainNode.gain.value = volume;
-    sourceNode.connect(gainNode);
+    var gainNode = ctx.createGain();
 
     var pannerNode = null;
     var pannerNodeType = null;
-    if (ac.createStereoPanner) {
+    if (ctx.createStereoPanner) {
       pannerNodeType = "stereoPannerNode";
-      pannerNode = ac.createStereoPanner();
-      pannerNode.pan.value = pan;
-      gainNode.connect(pannerNode);
-      pannerNode.connect(masterGainNode);
+      pannerNode = ctx.createStereoPanner();
+      sourceNode.connect(pannerNode);
+      pannerNode.connect(gainNode);
     }
-    else if (ac.createPanner) {
+    else if (ctx.createPanner) {
       pannerNodeType = "pannerNode";
-      pannerNode = ac.createPanner();
+      pannerNode = ctx.createPanner();
       pannerNode.panningModel = "equalpower";
-      pannerNode.setPosition(pan, 0, 1-Math.abs(pan));
-      gainNode.connect(pannerNode);
-      pannerNode.connect(masterGainNode);
+      sourceNode.connect(pannerNode);
+      pannerNode.connect(gainNode);
     }
     else {
       pannerNodeType = "none";
       pannerNode = null;
-      gainNode.connect(masterGainNode);
+      sourceNode.connect(gainNode);
     }
 
-    return {
+    var nodeSet = {
       sourceNode: sourceNode,
       gainNode: gainNode,
       pannerNode: pannerNode,
       pannerNodeType: pannerNodeType
     };
+    exports.setVolume(nodeSet, volume);
+    exports.setPan(nodeSet, pan);
+    return nodeSet;
   };
-
-
 
 
 
