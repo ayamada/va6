@@ -39,9 +39,27 @@
   exports.init = webaudio.init;
   //exports.disconnectNodeSafely = webaudio.disconnectNodeSafely;
   //exports.stopNodeSet = webaudio.stopNodeSet;
+  //exports.setupNodeSet = webaudio.setupNodeSet;
+
+
+  var playingstate = importLoadedModule('va6/playingstate');
+  exports.makePS = playingstate.make;
+  exports.playPS = playingstate.play;
+  exports.stopPS = playingstate.stop;
   //exports.setVolume = webaudio.setVolume;
   //exports.setPan = webaudio.setPan;
-  //exports.setupNodeSet = webaudio.setupNodeSet;
+  //exports.setPitch = webaudio.setPitch;
+
+//      loopStartPos: null, // ループ時に戻ってくる位置
+//      endPos: null, // 再生終了位置。loopStartPosが非nullならループ終端を示す
+//      endedHandle: null, // 再生完了時に実行されるやつ
+//      // 内部ステート系
+//      // TODO: 内部ステートの初期状態をどうするかは後で検討する事
+//      savePos: null, // この音源の再生開始pos(自動更新あり)
+//      saveSec: null, // 上記savePosが最後に更新された際のac.currentTime値
+//      nodeSet: null,
+//      stoppingPos: null, // この音源が停止している場合はここに停止posを入れる
+
 
 
 
@@ -92,6 +110,7 @@
 
     if (!debugBuf) { return; }
 
+    // webaudio.playBuf(debugBuf, ...); として、この辺りの処理をまとめる
     // TODO: この辺りの、「bufをnodeにする処理」もwebaudio内に格納する事
     var node = ac.createBufferSource();
     node.buffer = debugBuf;

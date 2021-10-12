@@ -315,15 +315,27 @@
   };
 
 
+  exports.setPitch = function (nodeSet, pitch) {
+    try {
+      // TODO: これまでの再生開始状態、現在の再生pos等の取得が必要
+      nodeSet.sourceNode.playbackRate.value = pitch;
+      // TODO: 再生開始状態の更新が必要
+    } catch (e) {
+      log.debug(e);
+    }
+  };
+
+
   // NB: 引数のsourceNodeに、geinNodeとpannerNodeを生やす。
   //     返り値として、disconnectNodeSetに渡せるnodeSetを返すので、
   //     きちんと保持しておく事。
   //     この後に、返り値内のgainNodeをどこかにconnectする事。
-  exports.setupNodeSet = function (ctx, sourceNode, volume, pan) {
+  exports.setupNodeSet = function (ctx, sourceNode, volume, pan, pitch) {
     if (!ctx) { ctx = ac; }
     if (!ctx) { return null; }
     if (volume == null) { volume = 1; }
     if (pan == null) { pan = 0; }
+    if (pitch == null) { pitch = 1; }
 
     var gainNode = ctx.createGain();
 
@@ -356,6 +368,7 @@
     };
     exports.setVolume(nodeSet, volume);
     exports.setPan(nodeSet, pan);
+    exports.setPitch(nodeSet, pitch);
     return nodeSet;
   };
 
