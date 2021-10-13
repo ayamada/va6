@@ -11,17 +11,6 @@ open http://localhost:8001/demo/dev.html
 ## TODO
 
 
-- playingstate.jsを完成させよう
-    - 一応できた(動作未確認)
-    - debug()を、playingstate.jsを叩くようにしよう
-
-
-
-- nodeset.js を分離する
-    - あとからfaderNodeとか追加しやすいように
-        - faderNodeは今は追加しないがTODOとして書いておく事
-
-
 
 - どこから進めていくか決める必要がある
     - 動作確認の取れる部位から進めなくてはならない

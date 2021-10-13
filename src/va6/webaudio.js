@@ -268,115 +268,13 @@
 
 
 
-  exports.disconnectNodeSafely = function (node) {
-    if (node == null) { return; }
-    if (!node.disconnect) {
-      log.error(["is not node", node]);
-      return;
-    }
-    try { node.disconnect(); } catch (e) { log.debug(e); }
-    if (node.buffer) {
-      try { node.buffer = null; } catch (e) { log.debug(e); }
-    }
-  };
 
 
-  exports.stopNodeSet = function (nodeSet) {
-    if (!nodeSet) { return; }
-    try { nodeSet.gainNode.gain.value = 0; } catch (e) { log.debug(e); }
-    try { nodeSet.sourceNode.stop(); } catch (e) { log.debug(e); }
-    // if (nodeSet.sourceNode) { nodeSet.sourceNode.onended = null; } // TODO: これを実行するかはかなり悩む
-    //nodeSet.playEndedTimestamp = ac.currentTime; // TODO: これをするかはもうちょっと後で判断する
-  };
-
-  // setupNodeSetが返したnodeSetを適切に切断除去する。
-  // stopは事前に行っておくのが望ましいが、行ってなければここで行う。
-  exports.disconnectNodeSet = function (nodeSet) {
-    if (!nodeSet) { return null; }
-    exports.stopNodeSet(nodeSet);
-    exports.disconnectNodeSafely(nodeSet.sourceNode);
-    exports.disconnectNodeSafely(nodeSet.gainNode);
-    exports.disconnectNodeSafely(nodeSet.pannerNode);
-  };
 
 
-  // setupNodeSetが返したnodeSetを適切にacに接続する。
-  exports.connectNodeSet = function (nodeSet) {
-    exports.connectMasterGainNode(nodeSet.gainNode);
-  };
 
 
-  exports.setVolume = function (nodeSet, volume) {
-    nodeSet.gainNode.gain.value = volume;
-  };
 
-
-  exports.setPan = function (nodeSet, pan) {
-    if (nodeSet.pannerNodeType == "stereoPannerNode") {
-      nodeSet.pannerNode.pan.value = pan;
-    }
-    else if (nodeSet.pannerNodeType == "pannerNode") {
-      nodeSet.pannerNode.setPosition(pan, 0, 1-Math.abs(pan));
-    }
-  };
-
-
-  exports.setPitch = function (nodeSet, pitch) {
-    try {
-      // TODO: これまでの再生開始状態、現在の再生pos等の取得が必要
-      nodeSet.sourceNode.playbackRate.value = pitch;
-      // TODO: 再生開始状態の更新が必要
-    } catch (e) {
-      log.debug(e);
-    }
-  };
-
-
-  // NB: 引数のsourceNodeに、geinNodeとpannerNodeを生やす。
-  //     返り値として、disconnectNodeSetに渡せるnodeSetを返すので、
-  //     きちんと保持しておく事。
-  //     この後に、返り値内のgainNodeをどこかにconnectする事。
-  exports.setupNodeSet = function (ctx, sourceNode, volume, pan, pitch) {
-    if (!ctx) { ctx = ac; }
-    if (!ctx) { return null; }
-    if (volume == null) { volume = 1; }
-    if (pan == null) { pan = 0; }
-    if (pitch == null) { pitch = 1; }
-
-    var gainNode = ctx.createGain();
-
-    var pannerNode = null;
-    var pannerNodeType = null;
-    if (ctx.createStereoPanner) {
-      pannerNodeType = "stereoPannerNode";
-      pannerNode = ctx.createStereoPanner();
-      sourceNode.connect(pannerNode);
-      pannerNode.connect(gainNode);
-    }
-    else if (ctx.createPanner) {
-      pannerNodeType = "pannerNode";
-      pannerNode = ctx.createPanner();
-      pannerNode.panningModel = "equalpower";
-      sourceNode.connect(pannerNode);
-      pannerNode.connect(gainNode);
-    }
-    else {
-      pannerNodeType = "none";
-      pannerNode = null;
-      sourceNode.connect(gainNode);
-    }
-
-    var nodeSet = {
-      sourceNode: sourceNode,
-      gainNode: gainNode,
-      pannerNode: pannerNode,
-      pannerNodeType: pannerNodeType
-    };
-    exports.setVolume(nodeSet, volume);
-    exports.setPan(nodeSet, pan);
-    exports.setPitch(nodeSet, pitch);
-    return nodeSet;
-  };
 
 
 

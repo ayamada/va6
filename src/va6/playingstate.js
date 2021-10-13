@@ -18,6 +18,7 @@
   var log = importLoadedModule('va6/log');
   var config = importLoadedModule('va6/config');
   var webaudio = importLoadedModule('va6/webaudio');
+  var nodeset = importLoadedModule('va6/nodeset');
 
 
   // NB: 「pos」について。
@@ -58,17 +59,17 @@
 
   exports.setVolume = function (ps, volume) {
     ps.volume = volume;
-    if (ps.nodeSet) { webaudio.setVolume(ps.nodeSet, ps.volume); }
+    if (ps.nodeSet) { nodeset.setVolume(ps.nodeSet, ps.volume); }
     return ps;
   };
   exports.setPan = function (ps, pan) {
     ps.pan = pan;
-    if (ps.nodeSet) { webaudio.setPan(ps.nodeSet, ps.pan); }
+    if (ps.nodeSet) { nodeset.setPan(ps.nodeSet, ps.pan); }
     return ps;
   };
   exports.setPitch = function (ps, pitch) {
     ps.pitch = pitch;
-    if (ps.nodeSet) { webaudio.setPitch(ps.nodeSet, ps.pitch); }
+    if (ps.nodeSet) { nodeset.setPitch(ps.nodeSet, ps.pitch); }
     return ps;
   };
   // NB: 以下のパラメータを変更できるのは停止時のみ
@@ -141,7 +142,7 @@
   exports.stop = function (ps) {
     var pos = exports.getPos(ps);
     if (!ps.nodeSet) { return null; }
-    webaudio.disconnectNodeSet(ps.nodeSet);
+    nodeset.disconnect(ps.nodeSet);
     ps.savePos = null;
     ps.saveTimestamp = null;
     ps.nodeSet = null;
@@ -191,12 +192,12 @@
       sourceNode.loopStart = ps.loopStartPos;
       sourceNode.loopEnd = ps.endPos;
     }
-    ps.nodeSet = webaudio.setupNodeSet(ac, sourceNode);
-    webaudio.connectNodeSet(ps.nodeSet);
+    ps.nodeSet = nodeset.make(ac, sourceNode);
+    nodeset.connect(ps.nodeSet);
 
-    webaudio.setVolume(ps.nodeSet, ps.volume);
-    webaudio.setPan(ps.nodeSet, ps.pan);
-    webaudio.setPitch(ps.nodeSet, ps.pitch);
+    nodeset.setVolume(ps.nodeSet, ps.volume);
+    nodeset.setPan(ps.nodeSet, ps.pan);
+    nodeset.setPitch(ps.nodeSet, ps.pitch);
 
     sourceNode.onended = function () {
       log.debug(["onended", ps]);

@@ -46,6 +46,9 @@
   //exports.setPitch = webaudio.setPitch;
 
 
+  var nodeset = importLoadedModule('va6/nodeset');
+
+
   var playingstate = importLoadedModule('va6/playingstate');
   //exports.makePS = playingstate.make;
   //exports.playPS = playingstate.play;
@@ -86,8 +89,8 @@
 
     var vol = 0.1;
     var pan = 0;
-    var nodeSet = webaudio.setupNodeSet(oac, osc, vol, pan);
-    nodeSet.gainNode.connect(oac.destination);
+    var nodeSet = nodeset.make(oac, osc, vol, pan);
+    nodeset.connect(nodeSet, oac.destination);
     // TODO: attack/decay/sustain/releaseっぽく制御したい。できるか？
     // TODO: 音楽的に複数の音を出すには？
     // TODO: この処理を汎用的にできるか？
@@ -96,8 +99,8 @@
       debugBuf = buf;
       osc.stop();
       osc.disconnect();
-      webaudio.disconnectNodeSet(nodeSet);
-      //oac.close(); // OfflineAudioContextはcloseできないらしい
+      nodeset.disconnect(nodeSet);
+      //oac.close(); // OfflineAudioContextはcloseできないらしい。startRenderingだけでもうclose状態になるようだ
     });
   }
   prepareDebugBuf();
