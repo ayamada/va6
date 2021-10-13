@@ -12,21 +12,14 @@ open http://localhost:8001/demo/dev.html
 
 
 - playingstate.jsを完成させよう
+    - 一応できた(動作未確認)
+    - debug()を、playingstate.jsを叩くようにしよう
 
 
 
-
-
-
-- playingstate.getPos() の実装
-    - 汎用で使う
-    - 引数にplayingStateを取るようにする
-
-
-
-- まずwebaudio.playBuf()をつくるところを優先する。これが基本になる
-
-
+- nodeset.js を分離する
+    - あとからfaderNodeとか追加しやすいように
+        - faderNodeは今は追加しないがTODOとして書いておく事
 
 
 

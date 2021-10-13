@@ -289,14 +289,20 @@
     //nodeSet.playEndedTimestamp = ac.currentTime; // TODO: これをするかはもうちょっと後で判断する
   };
 
-  // NB: setupNodeSetが返したnodeSetを適切に切断除去する。
-  //     stopは事前に行っておくのが望ましいが、行ってなければここで行う。
+  // setupNodeSetが返したnodeSetを適切に切断除去する。
+  // stopは事前に行っておくのが望ましいが、行ってなければここで行う。
   exports.disconnectNodeSet = function (nodeSet) {
     if (!nodeSet) { return null; }
     exports.stopNodeSet(nodeSet);
     exports.disconnectNodeSafely(nodeSet.sourceNode);
     exports.disconnectNodeSafely(nodeSet.gainNode);
     exports.disconnectNodeSafely(nodeSet.pannerNode);
+  };
+
+
+  // setupNodeSetが返したnodeSetを適切にacに接続する。
+  exports.connectNodeSet = function (nodeSet) {
+    exports.connectMasterGainNode(nodeSet.gainNode);
   };
 
 

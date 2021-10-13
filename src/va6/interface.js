@@ -16,8 +16,6 @@
 
 
   var log = importLoadedModule('va6/log');
-  //exports.displayErrorLog = log.error;
-  //exports.displayDebugLog = log.debug;
 
 
   var validate = importLoadedModule('va6/validate');
@@ -27,6 +25,9 @@
   exports.getConfig = config.get;
   exports.setConfig = config.set;
   exports.config = config.proxy;
+
+
+  // TODO: この辺りのexports対象がきちんとマッピングされてるか怪しい(特にコメントアウト状態のもの)。あとで確認して修正する事
 
 
   var webaudio = importLoadedModule('va6/webaudio');
@@ -40,25 +41,22 @@
   //exports.disconnectNodeSafely = webaudio.disconnectNodeSafely;
   //exports.stopNodeSet = webaudio.stopNodeSet;
   //exports.setupNodeSet = webaudio.setupNodeSet;
-
-
-  var playingstate = importLoadedModule('va6/playingstate');
-  exports.makePS = playingstate.make;
-  exports.playPS = playingstate.play;
-  exports.stopPS = playingstate.stop;
   //exports.setVolume = webaudio.setVolume;
   //exports.setPan = webaudio.setPan;
   //exports.setPitch = webaudio.setPitch;
 
-//      loopStartPos: null, // ループ時に戻ってくる位置
-//      endPos: null, // 再生終了位置。loopStartPosが非nullならループ終端を示す
-//      endedHandle: null, // 再生完了時に実行されるやつ
-//      // 内部ステート系
-//      // TODO: 内部ステートの初期状態をどうするかは後で検討する事
-//      savePos: null, // この音源の再生開始pos(自動更新あり)
-//      saveSec: null, // 上記savePosが最後に更新された際のac.currentTime値
-//      nodeSet: null,
-//      stoppingPos: null, // この音源が停止している場合はここに停止posを入れる
+
+  var playingstate = importLoadedModule('va6/playingstate');
+  //exports.makePS = playingstate.make;
+  //exports.playPS = playingstate.play;
+  //exports.stopPS = playingstate.stop;
+  //exports.setVolume = playingstate.setVolume;
+  //exports.setPan = playingstate.setPan;
+  //exports.setPitch = playingstate.setPitch;
+  //exports.setPos = playingstate.setPos;
+  //exports.setLoopStartPos = playingstate.setLoopStartPos;
+  //exports.setEndPos = playingstate.setEndPos;
+  //exports.setEndedHandle = playingstate.setEndedHandle;
 
 
 
@@ -110,25 +108,11 @@
 
     if (!debugBuf) { return; }
 
-    // webaudio.playBuf(debugBuf, ...); として、この辺りの処理をまとめる
-    // TODO: この辺りの、「bufをnodeにする処理」もwebaudio内に格納する事
-    var node = ac.createBufferSource();
-    node.buffer = debugBuf;
-    var nodeSet = webaudio.setupNodeSet(ac, node);
-    webaudio.connectMasterGainNode(node);
-    // TODO: onendedの部分もwebaudio名前空間に移動させる必要があるが…
-    node.onended = function () {
-      var isSlept = false; // TODO: どうやって取るか考える事
-      if (!isSlept) {
-        log.debug(["onended", nodeSet, "and shutdown"]);
-        webaudio.stopNodeSet(nodeSet);
-        webaudio.disconnectNodeSet(nodeSet);
-      }
-      else {
-        log.debug(["onended", nodeSet, "but slept (don't shutdown)"]);
-      }
-    };
-    node.start();
+    var ps = playingstate.make(debugBuf);
+    //playingstate.setPos(ps, 0);
+    //playingstate.setLoopStartPos(ps, 0.2);
+    //playingstate.setEndPos(ps, 0.3);
+    playingstate.play(ps);
   };
 
 
