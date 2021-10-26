@@ -27,7 +27,7 @@
 
   exports.number = function (label, min, v, max, fallback) {
     if (typeof v !== 'number' || !isFinite(v)) {
-      log.error(["" + label + " must be a number, but found", v]);
+      log.error([label + " must be a number, but found", v]);
       return fallback;
     }
     // clampした結果を返す
@@ -37,33 +37,39 @@
   };
 
 
+  exports.string = function (label, v, isAllowEmpty, fallback) {
+    if (typeof v !== 'string') {
+      log.error([label + " must be a string, but found", v]);
+      return fallback;
+    }
+    if (!isAllowEmpty && (v === "")) {
+      log.error(label + " should not be empty string");
+      return fallback;
+    }
+    return v;
+  };
 
-// from va5
 
-//  Assert.validateString = function (label, v, fallback) {
-//    if (typeof v !== 'string') {
-//      va5._logError("" + label + " must be a string, but found " + v + " (" + typeof v + ")");
-//      return fallback;
-//    }
-//    if (v === "") {
-//      va5._logError("" + label + " should not be empty string");
-//      return fallback;
-//    }
-//    return v;
-//  };
+  exports.enumerated = function (label, v, enums, fallback) {
+    // enums内にnullを含める事はできないのに注意
+    var isFound = false;
+    enums.forEach(function (e) { if (e === v) { isFound = true; } });
+    if (!isFound) {
+      log.error([label + " must be " + enums.map(JSON.stringify).join(" or ") + ", but found", v]);
+      return fallback;
+    }
+    return v;
+  };
 
-//  // enums内にnullを含める事はできないのに注意
-//  Assert.validateEnum = function (label, v, enums, fallback) {
-//    var isFound = false;
-//    enums.forEach(function (e) { if (e === v) { isFound = true; } });
-//    if (!isFound) {
-//      va5._logError("" + label + " must be " +
-//        enums.map(JSON.stringify).join(" or ") + ", but found " + v +
-//        " (" + typeof v + ")");
-//      return fallback;
-//    }
-//    return v;
-//  };
+
+  exports.instanceOf = function (label, v, targetClass, fallback) {
+    if (!(v instanceof targetClass)) {
+      log.error([v, "is not instance of", targetClass]);
+      return fallback;
+    }
+    return v;
+  };
+
 
 
 

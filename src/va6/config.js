@@ -91,6 +91,10 @@
     newV = validate.number(currentLabel, null, newV, null, null);
     return (newV == null) ? oldV : Math.floor(newV);
   }
+  function coerceSec (oldV, newV) {
+    newV = validate.number(currentLabel, 0, newV, null, null);
+    return (newV == null) ? oldV : newV;
+  }
 
 
   defineConfig("isDisplayErrorLog", true, coerceBoolean, null);
@@ -102,84 +106,31 @@
   });
 
 
+  defineConfig("volumeBgm", 0.5, coerceVolume, function (oldV, newV) {
+    // TODO: 再生中のbgm全てに新しい値を反映する必要がある
+    //importLoadedModule('va6/bgm').setVolume(newV);
+  });
+  defineConfig("volumeSe", 0.5, coerceVolume, function (oldV, newV) {
+    // TODO: 再生中のse全てに新しい値を反映する必要がある
+    //importLoadedModule('va6/se').setVolume(newV);
+  });
+  defineConfig("volumeVoice", 0.5, coerceVolume, function (oldV, newV) {
+    // TODO: 再生中のvoice全てに新しい値を反映する必要がある
+    //importLoadedModule('va6/voice').setVolume(newV);
+  });
+
+
   defineConfig("OAC_numberOfChannels", 2, coerceInteger, null);
   defineConfig("OAC_sampleRate", 44100, coerceInteger, null);
 
 
+  defineConfig("bgmFadeSecDefault", 1, coerceSec, null);
+  defineConfig("seFadeSecDefault", 0, coerceSec, null);
+  defineConfig("voiceFadeSecDefault", 0.1, coerceSec, null);
+
+
   // TODO: 必要な項目をひたすらdefineConfig()していく
   // 以下はva5のもの
-//  /**
-//   * va5.getConfig("volume-bgm")
-//   * va5.bgm()全体の音量倍率。変更すると即座に反映される。
-//   * デフォルト値0.5。
-//   * @name getConfigOption
-//   */
-//  defineConfig("volume-bgm", 0.5, function (newV, oldV) {
-//    newV = va5._validateNumber("volume-bgm", 0, newV, 1, null);
-//    return (newV == null) ? oldV : newV;
-//  }, function (v) {
-//    va5.Bgm.setBaseVolume(v);
-//  });
-//
-//  /**
-//   * va5.getConfig("volume-se")
-//   * va5.se()全体の音量倍率。変更すると即座に反映される。
-//   * デフォルト値0.5。
-//   * @name getConfigOption
-//   */
-//  defineConfig("volume-se", 0.5, function (newV, oldV) {
-//    newV = va5._validateNumber("volume-se", 0, newV, 1, null);
-//    return (newV == null) ? oldV : newV;
-//  }, function (v) {
-//    va5.Se.setBaseVolume(v);
-//  });
-//
-//  /**
-//   * va5.getConfig("volume-voice")
-//   * va5.voice()全体の音量倍率。変更すると即座に反映される。
-//   * デフォルト値0.5。
-//   * @name getConfigOption
-//   */
-//  defineConfig("volume-voice", 0.5, function (newV, oldV) {
-//    newV = va5._validateNumber("volume-voice", 0, newV, 1, null);
-//    return (newV == null) ? oldV : newV;
-//  }, function (v) {
-//    va5.Bgm.setBaseVolumeVoice(v);
-//  });
-//
-//  /**
-//   * va5.getConfig("default-bgm-fade-sec")
-//   * BGMをフェードアウト終了させる際のデフォルトのフェード秒数。
-//   * デフォルト値1。
-//   * @name getConfigOption
-//   */
-//  defineConfig("default-bgm-fade-sec", 1, function (newV, oldV) {
-//    newV = va5._validateNumber("default-bgm-fade-sec", 0, newV, null);
-//    return (newV == null) ? oldV : newV;
-//  }, null);
-//
-//  /**
-//   * va5.getConfig("default-se-fade-sec")
-//   * SEをフェードアウト終了させる際のデフォルトのフェード秒数。
-//   * デフォルト値0。
-//   * @name getConfigOption
-//   */
-//  defineConfig("default-se-fade-sec", 0, function (newV, oldV) {
-//    newV = va5._validateNumber("default-se-fade-sec", 0, newV, null);
-//    return (newV == null) ? oldV : newV;
-//  }, null);
-//
-//  /**
-//   * va5.getConfig("default-voice-fade-sec")
-//   * Voiceをフェードアウト終了させる際のデフォルトのフェード秒数。
-//   * デフォルト値0.1。
-//   * @name getConfigOption
-//   */
-//  defineConfig("default-voice-fade-sec", 0.1, function (newV, oldV) {
-//    newV = va5._validateNumber("default-voice-fade-sec", 0, newV, null);
-//    return (newV == null) ? oldV : newV;
-//  }, null);
-//
 //  /**
 //   * va5.getConfig("is-pause-on-background")
 //   * これが真値ならタブがバックグラウンドになった際にBGMを停止します。
@@ -211,17 +162,6 @@
 //  defineConfig("se-chattering-sec", 0.05, function (newV, oldV) {
 //    newV = va5._validateNumber("se-chattering-sec", 0, newV, null);
 //    return (newV == null) ? oldV : newV;
-//  }, null);
-//
-//  /**
-//   * va5.getConfig("is-use-dumb-mode-forcibly")
-//   * 常にDumbモード(無音モード)で起動する。デバッグ用。
-//   * デフォルト値false。
-//   * va5.init() 後にこの値を変更しても効果がありません。
-//   * @name getConfigOption
-//   */
-//  defineConfig("is-use-dumb-mode-forcibly", false, function (newV, oldV) {
-//    return !!newV;
 //  }, null);
 //
 //  /**

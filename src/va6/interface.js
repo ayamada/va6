@@ -62,6 +62,7 @@
   //exports.setEndedHandle = playingstate.setEndedHandle;
 
 
+  var playarg = importLoadedModule('va6/playarg');
 
 
 
@@ -105,17 +106,62 @@
   }
   prepareDebugBuf();
 
-  exports.debug = function () {
+  // TODO: この辺りをどうにかしてモジュール化する必要があるが…
+
+  function seProto2 (cd) {
+    var ac = exports.getAudioContext();
+    // NB: ここに来た段階で、cd.bufが解決できている前提
+    var ps = playingstate.make(cd.buf);
+
+    // TODO: cd.params.channel への対応(詳細未定)
+    // TODO: cd.params.fadeinSec への対応
+    // NB: cd.params.transitionMode への対応は、seでは不要(bgm/voiceでは必要)
+    // NB: cd.params.isAlarm への対応はここでは不要
+
+    playingstate.setVolume(ps, cd.params.volume);
+    playingstate.setPan(ps, cd.params.pan);
+    playingstate.setPitch(ps, cd.params.pitch);
+    playingstate.setPos(ps, cd.params.pos);
+    playingstate.setLoopStartPos(ps, cd.params.loopStartPos);
+    playingstate.setEndPos(ps, cd.params.endPos);
+    //playingstate.setEndedHandle(ps, endedHandle); // TODO: 不明
+
+    playingstate.play(ps);
+  }
+
+  function seProto (params) {
     var ac = exports.getAudioContext();
     if (!ac) { return; }
 
-    if (!debugBuf) { return; }
+    params = arg.normalize("se", params);
+    if (!params) { return; }
 
-    var ps = playingstate.make(debugBuf);
-    //playingstate.setPos(ps, 0);
-    //playingstate.setLoopStartPos(ps, 0.2);
-    //playingstate.setEndPos(ps, 0.3);
-    playingstate.play(ps);
+    if (params.path != null) {
+      log.error(["'path' is not implemented yet", params]);
+      return;
+    }
+    if (params.builtin != null) {
+      log.error(["'builtin' is not implemented yet", params]);
+      return;
+    }
+
+    // bufが解決できたら、channelDataの形にしてseProto2に行ける
+    // (今はpathやbuiltin非対応なのでそのまま行けるが、将来はasyncになる)
+    var channelData = {
+      buf: params.buf,
+      params: params
+    };
+    seProto2(channelData);
+
+    // TODO: 内部で保持しているchannelDataを参照できるようにする
+
+    // TODO: channelDataを参照できる、channel文字列を返す必要がある
+    return "TODO";
+  }
+
+  exports.debug = function () {
+    if (!debugBuf) { return; }
+    seProto({buf: debugBuf});
   };
 
 
