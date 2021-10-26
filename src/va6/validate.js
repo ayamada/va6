@@ -1,5 +1,5 @@
 (function (global, factory) {
-  var namespace = 'va6/validate';
+  var namespace = 'VA6/Validate';
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global[namespace] = {}));
@@ -15,7 +15,7 @@
   }
 
 
-  var log = importLoadedModule('va6/log');
+  var Log = importLoadedModule('VA6/Log');
 
 
   // validate系機能は「値に問題がなければ」「補正後の値」が返される。
@@ -27,7 +27,7 @@
 
   exports.number = function (label, min, v, max, fallback) {
     if (typeof v !== 'number' || !isFinite(v)) {
-      log.error([label + " must be a number, but found", v]);
+      Log.error([label + " must be a number, but found", v]);
       return fallback;
     }
     // clampした結果を返す
@@ -39,11 +39,11 @@
 
   exports.string = function (label, v, isAllowEmpty, fallback) {
     if (typeof v !== 'string') {
-      log.error([label + " must be a string, but found", v]);
+      Log.error([label + " must be a string, but found", v]);
       return fallback;
     }
     if (!isAllowEmpty && (v === "")) {
-      log.error(label + " should not be empty string");
+      Log.error(label + " should not be empty string");
       return fallback;
     }
     return v;
@@ -55,7 +55,7 @@
     var isFound = false;
     enums.forEach(function (e) { if (e === v) { isFound = true; } });
     if (!isFound) {
-      log.error([label + " must be " + enums.map(JSON.stringify).join(" or ") + ", but found", v]);
+      Log.error([label + " must be " + enums.map(JSON.stringify).join(" or ") + ", but found", v]);
       return fallback;
     }
     return v;
@@ -64,7 +64,7 @@
 
   exports.instanceOf = function (label, v, targetClass, fallback) {
     if (!(v instanceof targetClass)) {
-      log.error([v, "is not instance of", targetClass]);
+      Log.error([v, "is not instance of", targetClass]);
       return fallback;
     }
     return v;

@@ -1,5 +1,5 @@
 (function (global, factory) {
-  var namespace = 'va6';
+  var namespace = 'VA6';
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global[namespace] = {}));
@@ -15,56 +15,57 @@
   }
 
 
-  var log = importLoadedModule('va6/log');
+  var Log = importLoadedModule('VA6/Log');
 
 
-  var validate = importLoadedModule('va6/validate');
+  var Validate = importLoadedModule('VA6/Validate');
 
 
-  var config = importLoadedModule('va6/config');
-  exports.getConfig = config.get;
-  exports.setConfig = config.set;
-  exports.config = config.proxy;
+  var Config = importLoadedModule('VA6/Config');
+  exports.getConfig = Config.get;
+  exports.setConfig = Config.set;
+  exports.config = Config.proxy;
 
 
   // TODO: この辺りのexports対象がきちんとマッピングされてるか怪しい(特にコメントアウト状態のもの)。あとで確認して修正する事
 
 
-  var webaudio = importLoadedModule('va6/webaudio');
-  //exports.setVolumeMaster = webaudio.setVolumeMaster;
-  exports.isActivatedAudioContext = webaudio.isActivatedAudioContext;
-  exports.getAudioContext = webaudio.getAudioContext;
-  exports.getAudioContextAsync = webaudio.getAudioContextAsync;
-  exports.connectMasterGainNode = webaudio.connectMasterGainNode;
-  exports.createOfflineAudioContext = webaudio.createOfflineAudioContext;
-  exports.init = webaudio.init;
-  //exports.disconnectNodeSafely = webaudio.disconnectNodeSafely;
-  //exports.stopNodeSet = webaudio.stopNodeSet;
-  //exports.setupNodeSet = webaudio.setupNodeSet;
-  //exports.setVolume = webaudio.setVolume;
-  //exports.setPan = webaudio.setPan;
-  //exports.setPitch = webaudio.setPitch;
+  var WebAudio = importLoadedModule('VA6/WebAudio');
+  //exports.setVolumeMaster = WebAudio.setVolumeMaster;
+  exports.isActivatedAudioContext = WebAudio.isActivatedAudioContext;
+  exports.getAudioContext = WebAudio.getAudioContext;
+  exports.getAudioContextAsync = WebAudio.getAudioContextAsync;
+  exports.connectMasterGainNode = WebAudio.connectMasterGainNode;
+  exports.createOfflineAudioContext = WebAudio.createOfflineAudioContext;
+  exports.init = WebAudio.init;
+  //exports.disconnectNodeSafely = WebAudio.disconnectNodeSafely;
+  //exports.stopNodeSet = WebAudio.stopNodeSet;
+  //exports.setupNodeSet = WebAudio.setupNodeSet;
+  //exports.setVolume = WebAudio.setVolume;
+  //exports.setPan = WebAudio.setPan;
+  //exports.setPitch = WebAudio.setPitch;
 
 
-  var nodeset = importLoadedModule('va6/nodeset');
+  var NodeSet = importLoadedModule('VA6/NodeSet');
 
 
-  var playingstate = importLoadedModule('va6/playingstate');
-  //exports.makePS = playingstate.make;
-  //exports.playPS = playingstate.play;
-  //exports.stopPS = playingstate.stop;
-  //exports.setVolume = playingstate.setVolume;
-  //exports.setPan = playingstate.setPan;
-  //exports.setPitch = playingstate.setPitch;
-  //exports.setPos = playingstate.setPos;
-  //exports.setLoopStartPos = playingstate.setLoopStartPos;
-  //exports.setEndPos = playingstate.setEndPos;
-  //exports.setEndedHandle = playingstate.setEndedHandle;
+  var PlayingState = importLoadedModule('VA6/PlayingState');
+  //exports.makePS = PlayingState.make;
+  //exports.playPS = PlayingState.play;
+  //exports.stopPS = PlayingState.stop;
+  //exports.setVolume = PlayingState.setVolume;
+  //exports.setPan = PlayingState.setPan;
+  //exports.setPitch = PlayingState.setPitch;
+  //exports.setPos = PlayingState.setPos;
+  //exports.setLoopStartPos = PlayingState.setLoopStartPos;
+  //exports.setEndPos = PlayingState.setEndPos;
+  //exports.setEndedHandle = PlayingState.setEndedHandle;
 
 
-  var playarg = importLoadedModule('va6/playarg');
+  var PlayArg = importLoadedModule('VA6/PlayArg');
 
 
+  var Se = importLoadedModule('VA6/Se');
 
 
 
@@ -90,8 +91,8 @@
 
     var vol = 0.1;
     var pan = 0;
-    var nodeSet = nodeset.make(oac, osc, vol, pan);
-    nodeset.connect(nodeSet, oac.destination);
+    var ns = NodeSet.make(oac, osc, vol, pan);
+    NodeSet.connect(ns, oac.destination);
     // TODO: attack/decay/sustain/releaseっぽく制御したい。できるか？
     // TODO: 音楽的に複数の音を出すには？
     // TODO: この処理を汎用的にできるか？
@@ -100,68 +101,15 @@
       debugBuf = buf;
       osc.stop();
       osc.disconnect();
-      nodeset.disconnect(nodeSet);
+      NodeSet.disconnect(ns);
       //oac.close(); // OfflineAudioContextはcloseできないらしい。startRenderingだけでもうclose状態になるようだ
     });
   }
   prepareDebugBuf();
 
-  // TODO: この辺りをどうにかしてモジュール化する必要があるが…
-
-  function seProto2 (cd) {
-    var ac = exports.getAudioContext();
-    // NB: ここに来た段階で、cd.bufが解決できている前提
-    var ps = playingstate.make(cd.buf);
-
-    // TODO: cd.params.channel への対応(詳細未定)
-    // TODO: cd.params.fadeinSec への対応
-    // NB: cd.params.transitionMode への対応は、seでは不要(bgm/voiceでは必要)
-    // NB: cd.params.isAlarm への対応はここでは不要
-
-    playingstate.setVolume(ps, cd.params.volume);
-    playingstate.setPan(ps, cd.params.pan);
-    playingstate.setPitch(ps, cd.params.pitch);
-    playingstate.setPos(ps, cd.params.pos);
-    playingstate.setLoopStartPos(ps, cd.params.loopStartPos);
-    playingstate.setEndPos(ps, cd.params.endPos);
-    //playingstate.setEndedHandle(ps, endedHandle); // TODO: 不明
-
-    playingstate.play(ps);
-  }
-
-  function seProto (params) {
-    var ac = exports.getAudioContext();
-    if (!ac) { return; }
-
-    params = arg.normalize("se", params);
-    if (!params) { return; }
-
-    if (params.path != null) {
-      log.error(["'path' is not implemented yet", params]);
-      return;
-    }
-    if (params.builtin != null) {
-      log.error(["'builtin' is not implemented yet", params]);
-      return;
-    }
-
-    // bufが解決できたら、channelDataの形にしてseProto2に行ける
-    // (今はpathやbuiltin非対応なのでそのまま行けるが、将来はasyncになる)
-    var channelData = {
-      buf: params.buf,
-      params: params
-    };
-    seProto2(channelData);
-
-    // TODO: 内部で保持しているchannelDataを参照できるようにする
-
-    // TODO: channelDataを参照できる、channel文字列を返す必要がある
-    return "TODO";
-  }
-
   exports.debug = function () {
     if (!debugBuf) { return; }
-    seProto({buf: debugBuf});
+    Se.playProto({buf: debugBuf});
   };
 
 

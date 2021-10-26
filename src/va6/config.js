@@ -1,5 +1,5 @@
 (function (global, factory) {
-  var namespace = 'va6/config';
+  var namespace = 'VA6/Config';
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global[namespace] = {}));
@@ -15,8 +15,8 @@
   }
 
 
-  var log = importLoadedModule('va6/log');
-  var validate = importLoadedModule('va6/validate');
+  var Log = importLoadedModule('VA6/Log');
+  var Validate = importLoadedModule('VA6/Validate');
 
 
   var definitionTable = {};
@@ -33,7 +33,7 @@
   function resolveDefinition (k) {
     var definition = definitionTable[k];
     if (!definition) {
-      log.error(["found unknown config key", k, ". valid keys are", Object.keys(definitionTable)]);
+      Log.error(["found unknown config key", k, ". valid keys are", Object.keys(definitionTable)]);
     }
     return definition;
   }
@@ -84,15 +84,15 @@
 
   function coerceBoolean (oldV, newV) { return !!newV; }
   function coerceVolume (oldV, newV) {
-    newV = validate.number(currentLabel, 0, newV, 1, null);
+    newV = Validate.number(currentLabel, 0, newV, 1, null);
     return (newV == null) ? oldV : newV;
   }
   function coerceInteger (oldV, newV) {
-    newV = validate.number(currentLabel, null, newV, null, null);
+    newV = Validate.number(currentLabel, null, newV, null, null);
     return (newV == null) ? oldV : Math.floor(newV);
   }
   function coerceSec (oldV, newV) {
-    newV = validate.number(currentLabel, 0, newV, null, null);
+    newV = Validate.number(currentLabel, 0, newV, null, null);
     return (newV == null) ? oldV : newV;
   }
 
@@ -102,21 +102,21 @@
 
 
   defineConfig("volumeMaster", 0.8, coerceVolume, function (oldV, newV) {
-    importLoadedModule('va6/webaudio').setVolumeMaster(newV);
+    importLoadedModule('VA6/WebAudio').setVolumeMaster(newV);
   });
 
 
   defineConfig("volumeBgm", 0.5, coerceVolume, function (oldV, newV) {
     // TODO: 再生中のbgm全てに新しい値を反映する必要がある
-    //importLoadedModule('va6/bgm').setVolume(newV);
+    //importLoadedModule('VA6/Bgm').setVolume(newV);
   });
   defineConfig("volumeSe", 0.5, coerceVolume, function (oldV, newV) {
     // TODO: 再生中のse全てに新しい値を反映する必要がある
-    //importLoadedModule('va6/se').setVolume(newV);
+    //importLoadedModule('VA6/Se').setVolume(newV);
   });
   defineConfig("volumeVoice", 0.5, coerceVolume, function (oldV, newV) {
     // TODO: 再生中のvoice全てに新しい値を反映する必要がある
-    //importLoadedModule('va6/voice').setVolume(newV);
+    //importLoadedModule('VA6/Voice').setVolume(newV);
   });
 
 

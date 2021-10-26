@@ -1,5 +1,5 @@
 (function (global, factory) {
-  var namespace = 'va6/webaudio';
+  var namespace = 'VA6/WebAudio';
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global[namespace] = {}));
@@ -15,8 +15,8 @@
   }
 
 
-  var log = importLoadedModule('va6/log');
-  var config = importLoadedModule('va6/config');
+  var Log = importLoadedModule('VA6/Log');
+  var Config = importLoadedModule('VA6/Config');
 
 
   function resolveAudioContextClass () {
@@ -51,7 +51,7 @@
     }
     ac = newAc;
     masterGainNode = ac.createGain();
-    masterGainNode.gain.value = config.proxy.volumeMaster;
+    masterGainNode.gain.value = Config.proxy.volumeMaster;
     masterGainNode.connect(ac.destination);
     // NB: メイングラフをもっと構築する必要があるなら、ここで行う
   }
@@ -87,8 +87,8 @@
     var oacc = resolveOfflineAudioContextClass();
     if (!oacc) { return null; }
     if (sec <= 0) { throw new Error("sec must be positive number"); }
-    var numberOfChannels = config.proxy.OAC_numberOfChannels;
-    var sampleRate = config.proxy.OAC_sampleRate;
+    var numberOfChannels = Config.proxy.OAC_numberOfChannels;
+    var sampleRate = Config.proxy.OAC_sampleRate;
     return new oacc({
       numberOfChannels: numberOfChannels,
       sampleRate: sampleRate,
@@ -120,12 +120,12 @@
         // NB: 何度もリトライする必要があるかもしれない
         var acTmp = new acc();
         if (acTmp.state == "suspended") {
-          log.debug(["setupChromiumOptimized", "failed to create ac, retry"]);
+          Log.debug(["setupChromiumOptimized", "failed to create ac, retry"]);
           acTmp.close();
           return;
         }
         document.removeEventListener(k, h, false);
-        log.debug(["setupChromiumOptimized", "succeeded to create ac"]);
+        Log.debug(["setupChromiumOptimized", "succeeded to create ac"]);
         setupAudioContext(acTmp);
       };
       document.addEventListener(k, h, false);
@@ -145,33 +145,33 @@
       if (ac) { return true; }
       if (!acTmp.resume) {
         // resume機能を持っていない。そのままいける筈
-        log.debug(["setupChromium", "resume not found, already unlocked"]);
+        Log.debug(["setupChromium", "resume not found, already unlocked"]);
         return true;
       }
       if (acTmp.state !== "suspended") {
         // unlock完了
-        log.debug(["setupChromium", "already unlocked"]);
+        Log.debug(["setupChromium", "already unlocked"]);
         return true;
       }
       if (isResumeRunning) {
         // 既にresume実行中で終了を待っている場合は、次回またチェックする
-        log.debug(["setupChromium", "already running"]);
+        Log.debug(["setupChromium", "already running"]);
         return false;
       }
       // resumeを実行する
-      log.debug(["setupChromium", "try to resume"]);
+      Log.debug(["setupChromium", "try to resume"]);
       isResumeRunning = true;
       acTmp.resume().then(
         function () {
           isResumeRunning = false;
-          if (!ac) { log.debug(["setupChromium", "succeeded to resume"]); }
+          if (!ac) { Log.debug(["setupChromium", "succeeded to resume"]); }
           setupAudioContext(acTmp);
         },
         function () {
           // resume失敗は適切なhandle外での実行しかない想定。
           // リトライできるよう再設定する
           isResumeRunning = false;
-          log.debug(["setupChromium", "failed to resume, retry"]);
+          Log.debug(["setupChromium", "failed to resume, retry"]);
         });
       // まだresumeが成功したかは分からないのでtrueは返せない
       return false;
@@ -198,11 +198,11 @@
       setTimeout(setupFirefox.bind(undefined, acTmp), 100);
     }
     else if (acTmp.state == "running") {
-      if (!ac) { log.debug(["setupFirefox", "succeeded to create ac"]); }
+      if (!ac) { Log.debug(["setupFirefox", "succeeded to create ac"]); }
       setupAudioContext(acTmp);
     }
     else {
-      log.debug(["setupFirefox", "ac already closed"]);
+      Log.debug(["setupFirefox", "ac already closed"]);
     }
   }
 
@@ -215,7 +215,7 @@
         bs.start();
         bs.stop();
         document.removeEventListener(k, h, false);
-        if (!ac) { log.debug(["setupSafari", "succeeded unlock ac"]); }
+        if (!ac) { Log.debug(["setupSafari", "succeeded unlock ac"]); }
         setupAudioContext(acTmp);
       }
       document.addEventListener(k, h, false);
@@ -241,7 +241,7 @@
     // safariおよび他は事前にインスタンスを生成し、マウスイベントで無音再生。
     var activationType = detectActivationType(options);
     if (options.isSkipUnlock) {
-      log.debug(["skip to unlock ac"]);
+      Log.debug(["skip to unlock ac"]);
       setupAudioContext(new acc());
     }
     else if (activationType == "chromium") {
@@ -255,7 +255,7 @@
       return;
     }
     else {
-      log.debug(["unknown activationType found", activationType]);
+      Log.debug(["unknown activationType found", activationType]);
       setupAudioContext(new acc());
       return;
     }

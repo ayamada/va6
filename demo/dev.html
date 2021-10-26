@@ -60,8 +60,8 @@ var sound2 = "./piin.m4a";
 var music1 = "./cntr2.m4a";
 var music2 = "./dandd.m4a";
 
-va6.config.isDisplayErrorLog = true;
-va6.config.isDisplayDebugLog = true;
+VA6.config.isDisplayErrorLog = true;
+VA6.config.isDisplayDebugLog = true;
       </code></pre>
 
       <!--
@@ -104,7 +104,7 @@ va6.config.isDisplayDebugLog = true;
 
       -->
 
-      <div style="text-align:center"><button type="button" style="font-size: 36pt" onclick="va6.debug()">DEBUG</button></div>
+      <div style="text-align:center"><button type="button" style="font-size: 36pt" onclick="VA6.debug()">DEBUG</button></div>
 
     </div>
 
@@ -135,6 +135,7 @@ va6.config.isDisplayDebugLog = true;
           "../src/va6/nodeset.js",
           "../src/va6/playingstate.js",
           "../src/va6/playarg.js",
+          "../src/va6/se.js",
           "../src/va6/interface.js"];
         targets.forEach(loadScript);
       })()

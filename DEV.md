@@ -11,18 +11,6 @@ open http://localhost:8001/demo/dev.html
 ## TODO
 
 
-- interface内のnamespaceの束縛名を変更する？
-    - seとか、名前のshadowingが発生しがちなので
-        - seの場合はSEとかSeとかにする？
-    - とりあえずファイル自体は全部小文字のままでok。問題になるのはexportされるnamespace名
-    - もうちょい考える
-        - おそらくC#みたいに、大文字始まりにするのがよいと思うが…
-        - 表に出すのは「va6」で固定でよい？
-            - pixiはPIXIと全部大文字にしてるが…
-                - pixiに習うなら、va6もVA6とかにすべきかも
-                    - 衝突しないよう、こうしましょう
-        - これで進める事
-            - 先にコミットした方がいいかも
 
 
 - 音量フェーダーをどこに入れるか
@@ -35,12 +23,11 @@ open http://localhost:8001/demo/dev.html
 
 
 - se完成させましょう
-    - seProtoからどう進める？
+    - playProtoからどう進める？
         - 連打防止？
         - チャンネル管理？
         - namespace分離？
             - おそらく、これを先にするのがよいのでは？
-    - se内では名前をplayとかにすべきかもしれない
 
 
 - playBuf相当ができた。ここから次はどうする？

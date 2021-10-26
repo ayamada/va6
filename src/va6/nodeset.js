@@ -1,5 +1,5 @@
 (function (global, factory) {
-  var namespace = 'va6/nodeset';
+  var namespace = 'VA6/NodeSet';
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global[namespace] = {}));
@@ -15,9 +15,9 @@
   }
 
 
-  var log = importLoadedModule('va6/log');
-  var config = importLoadedModule('va6/config');
-  var webaudio = importLoadedModule('va6/webaudio');
+  var Log = importLoadedModule('VA6/Log');
+  var Config = importLoadedModule('VA6/Config');
+  var WebAudio = importLoadedModule('VA6/WebAudio');
 
 
 
@@ -29,20 +29,20 @@
   exports.disconnectNodeSafely = function (node) {
     if (node == null) { return; }
     if (!node.disconnect) {
-      log.error(["is not node", node]);
+      Log.error(["is not node", node]);
       return;
     }
-    try { node.disconnect(); } catch (e) { log.debug(e); }
+    try { node.disconnect(); } catch (e) { Log.debug(e); }
     if (node.buffer) {
-      try { node.buffer = null; } catch (e) { log.debug(e); }
+      try { node.buffer = null; } catch (e) { Log.debug(e); }
     }
   };
 
 
   exports.stop = function (nodeSet) {
     if (!nodeSet) { return; }
-    try { nodeSet.gainNode.gain.value = 0; } catch (e) { log.debug(e); }
-    try { nodeSet.sourceNode.stop(); } catch (e) { log.debug(e); }
+    try { nodeSet.gainNode.gain.value = 0; } catch (e) { Log.debug(e); }
+    try { nodeSet.sourceNode.stop(); } catch (e) { Log.debug(e); }
   };
 
   // makeが返したnodeSetを適切に切断除去する。
@@ -59,7 +59,7 @@
   // makeが返したnodeSetを適切にacに接続する。ac以外も指定可能
   exports.connect = function (nodeSet, target) {
     if (!target) {
-      webaudio.connectMasterGainNode(nodeSet.gainNode);
+      WebAudio.connectMasterGainNode(nodeSet.gainNode);
     }
     else {
       nodeSet.gainNode.connect(target);
@@ -88,7 +88,7 @@
       nodeSet.sourceNode.playbackRate.value = pitch;
       // TODO: 再生開始状態の更新が必要
     } catch (e) {
-      log.debug(e);
+      Log.debug(e);
     }
   };
 

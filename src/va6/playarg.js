@@ -1,5 +1,5 @@
 (function (global, factory) {
-  var namespace = 'va6/playarg';
+  var namespace = 'VA6/PlayArg';
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global[namespace] = {}));
@@ -15,9 +15,9 @@
   }
 
 
-  var config = importLoadedModule('va6/config');
-  var log = importLoadedModule('va6/log');
-  var validate = importLoadedModule('va6/validate');
+  var Config = importLoadedModule('VA6/Config');
+  var Log = importLoadedModule('VA6/Log');
+  var Validate = importLoadedModule('VA6/Validate');
 
 
   // 仕様メモ
@@ -55,7 +55,7 @@
     var checkedCount = 0;
     if (opts.buf) {
       if (typeof AudioBuffer !== 'undefined') {
-        var v = validate.instanceOf("buf", opts.buf, AudioBuffer, null);
+        var v = Validate.instanceOf("buf", opts.buf, AudioBuffer, null);
         result.buf = v;
         if (v == null) { return null; }
       }
@@ -65,19 +65,19 @@
       checkedCount++;
     }
     if (opts.path != null) {
-      var v = validate.string("path", opts.path, false, null);
+      var v = Validate.string("path", opts.path, false, null);
       result.path = v;
       checkedCount++;
       if (v == null) { return null; }
     }
     if (opts.builtin != null) {
-      var v = validate.string("builtin", opts.builtin, false, null);
+      var v = Validate.string("builtin", opts.builtin, false, null);
       result.builtin = v;
       checkedCount++;
       if (v == null) { return null; }
     }
     if (1 != checkedCount) {
-      log.error(["must need one of buf, path, builtin", opts]);
+      Log.error(["must need one of buf, path, builtin", opts]);
       return null;
     }
 
@@ -86,34 +86,34 @@
     else if (mode == "se") { result.channel = null; } // TODO: 毎回違う値を発行する必要がある。どうする？ここではnullにし、manager側で付与する？
     else if (mode == "voice") { result.channel = "_voice_main"; }
     else {
-      log.error(["found unknown mode", mode]);
+      Log.error(["found unknown mode", mode]);
       return null;
     }
     if (opts.channel != null) {
-      var v = validate.string("channel", opts.channel, false, null);
+      var v = Validate.string("channel", opts.channel, false, null);
       result.channel = v;
       if (v == null) { return null; }
     }
 
     result.volume = 1;
     if (opts.volume != null) {
-      var v = validate.number("volume", 0, opts.volume, 1, 1);
+      var v = Validate.number("volume", 0, opts.volume, 1, 1);
       result.volume = v;
     }
     result.pan = 0;
     if (opts.pan != null) {
-      var v = validate.number("pan", -1, opts.pan, 1, 0);
+      var v = Validate.number("pan", -1, opts.pan, 1, 0);
       result.pan = v;
     }
     result.pitch = 1;
     if (opts.pitch != null) {
-      var v = validate.number("pitch", 0.001, opts.pitch, 1000, 1);
+      var v = Validate.number("pitch", 0.001, opts.pitch, 1000, 1);
       result.pitch = v;
     }
 
     var loopStartPos = null;
     if (opts.loopStartPos != null) {
-      var v = validate.number("loopStartPos", 0, opts.loopStartPos, null, 0);
+      var v = Validate.number("loopStartPos", 0, opts.loopStartPos, null, 0);
       loopStartPos = v;
     }
 
@@ -122,7 +122,7 @@
       result.pos = loopStartPos;
     }
     if (opts.startPos != null) {
-      var v = validate.number("startPos", 0, opts.startPos, null, null);
+      var v = Validate.number("startPos", 0, opts.startPos, null, null);
       if (v != null) { result.pos = v; }
     }
 
@@ -137,17 +137,17 @@
 
     result.endPos = null;
     if ((loopStartPos != null) && (opts.loopEndPos != null)) {
-      var v = validate.number("loopEndPos", loopStartPos, opts.loopEndPos, null, null);
+      var v = Validate.number("loopEndPos", loopStartPos, opts.loopEndPos, null, null);
       result.endPos = v;
     }
     if (opts.endPos != null) {
-      var v = validate.number("endPos", 0, opts.endPos, null, null);
+      var v = Validate.number("endPos", 0, opts.endPos, null, null);
       result.endPos = v;
     }
 
     result.fadeinSec = 0;
     if (opts.fadeinSec != null) {
-      var v = validate.number("fadeinSec", 0, opts.fadeinSec, null, 0);
+      var v = Validate.number("fadeinSec", 0, opts.fadeinSec, null, 0);
       result.fadeinSec = v;
     }
 
@@ -158,7 +158,7 @@
     var transitionModeDefault = "connectIfSame";
     result.transitionMode = transitionModeDefault;
     if (opts.transitionMode != null) {
-      var v = validate.enumerated("transitionMode", opts.transitionMode, transitionModeEnum, transitionModeDefault);
+      var v = Validate.enumerated("transitionMode", opts.transitionMode, transitionModeEnum, transitionModeDefault);
       result.transitionMode = v;
     }
 
@@ -171,7 +171,7 @@
       if (!argNameWhitelistMap[k]) { unknownArgs.push(k); }
     });
     if (unknownArgs.length) {
-      log.error(["found unknown options, but continue", unknownArgs]);
+      Log.error(["found unknown options, but continue", unknownArgs]);
     }
 
     return result;

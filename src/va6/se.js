@@ -1,5 +1,5 @@
 (function (global, factory) {
-  var namespace = 'va6/se';
+  var namespace = 'VA6/Se';
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global[namespace] = {}));
@@ -15,21 +15,21 @@
   }
 
 
-  var log = importLoadedModule('va6/log');
-  var validate = importLoadedModule('va6/validate');
-  var config = importLoadedModule('va6/config');
-  var webaudio = importLoadedModule('va6/webaudio');
-  var nodeset = importLoadedModule('va6/nodeset');
-  var playingstate = importLoadedModule('va6/playingstate');
-  var playarg = importLoadedModule('va6/playarg');
+  var Log = importLoadedModule('VA6/Log');
+  var Validate = importLoadedModule('VA6/Validate');
+  var Config = importLoadedModule('VA6/Config');
+  var WebAudio = importLoadedModule('VA6/WebAudio');
+  var NodeSet = importLoadedModule('VA6/NodeSet');
+  var PlayingState = importLoadedModule('VA6/PlayingState');
+  var PlayArg = importLoadedModule('VA6/PlayArg');
 
 
 
   // TODO: この処理はSEのみならずBGM/VOICEでも共通なので、別のところに移動させる事。しかしその為には「ChannelData」をより共通化させる必要がある。channeldata.jsに分けるか？
   function playChannelData (cd) {
-    var ac = exports.getAudioContext();
+    var ac = WebAudio.getAudioContext();
     // NB: ここに来た段階で、cd.bufが解決できている前提
-    var ps = playingstate.make(cd.buf);
+    var ps = PlayingState.make(cd.buf);
 
     // TODO: se-chattering-sec(旧名)のチェック
     // TODO: まず先にconfig項目をどうにかする
@@ -42,23 +42,23 @@
     // TODO: volume-se(旧名)の適用
     // TODO: まず先にconfig項目をどうにかする
 
-    playingstate.setVolume(ps, cd.params.volume);
-    playingstate.setPan(ps, cd.params.pan);
-    playingstate.setPitch(ps, cd.params.pitch);
-    playingstate.setPos(ps, cd.params.pos);
-    playingstate.setLoopStartPos(ps, cd.params.loopStartPos);
-    playingstate.setEndPos(ps, cd.params.endPos);
-    //playingstate.setEndedHandle(ps, endedHandle); // TODO: 不明
+    PlayingState.setVolume(ps, cd.params.volume);
+    PlayingState.setPan(ps, cd.params.pan);
+    PlayingState.setPitch(ps, cd.params.pitch);
+    PlayingState.setPos(ps, cd.params.pos);
+    PlayingState.setLoopStartPos(ps, cd.params.loopStartPos);
+    PlayingState.setEndPos(ps, cd.params.endPos);
+    //PlayingState.setEndedHandle(ps, endedHandle); // TODO: 不明
 
-    playingstate.play(ps);
+    PlayingState.play(ps);
   }
 
 
-  function seProto (params) {
-    var ac = exports.getAudioContext();
+  function playProto (params) {
+    var ac = WebAudio.getAudioContext();
     if (!ac) { return; }
 
-    params = playarg.normalize("se", params);
+    params = PlayArg.normalize("se", params);
     if (!params) { return; }
 
     // TODO: pathとbuiltinへの対応を実装しましょう
@@ -66,11 +66,11 @@
     // TODO: この辺りの処理を上手く抽象化し、bgm/se/voiceで共通化したい
 
     if (params.path != null) {
-      log.error(["'path' is not implemented yet", params]);
+      Log.error(["'path' is not implemented yet", params]);
       return;
     }
     if (params.builtin != null) {
-      log.error(["'builtin' is not implemented yet", params]);
+      Log.error(["'builtin' is not implemented yet", params]);
       return;
     }
 
@@ -87,6 +87,7 @@
     // TODO: channelDataを参照できる、channel文字列を返す必要がある
     return "TODO";
   }
+  exports.playProto = playProto;
 
 
 

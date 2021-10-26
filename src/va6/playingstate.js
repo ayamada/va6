@@ -1,5 +1,5 @@
 (function (global, factory) {
-  var namespace = 'va6/playingstate';
+  var namespace = 'VA6/PlayingState';
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global[namespace] = {}));
@@ -15,10 +15,10 @@
   }
 
 
-  var log = importLoadedModule('va6/log');
-  var config = importLoadedModule('va6/config');
-  var webaudio = importLoadedModule('va6/webaudio');
-  var nodeset = importLoadedModule('va6/nodeset');
+  var Log = importLoadedModule('VA6/Log');
+  var Config = importLoadedModule('VA6/Config');
+  var WebAudio = importLoadedModule('VA6/WebAudio');
+  var NodeSet = importLoadedModule('VA6/NodeSet');
 
 
   // NB: 「pos」について。
@@ -59,23 +59,23 @@
 
   exports.setVolume = function (ps, volume) {
     ps.volume = volume;
-    if (ps.nodeSet) { nodeset.setVolume(ps.nodeSet, ps.volume); }
+    if (ps.nodeSet) { NodeSet.setVolume(ps.nodeSet, ps.volume); }
     return ps;
   };
   exports.setPan = function (ps, pan) {
     ps.pan = pan;
-    if (ps.nodeSet) { nodeset.setPan(ps.nodeSet, ps.pan); }
+    if (ps.nodeSet) { NodeSet.setPan(ps.nodeSet, ps.pan); }
     return ps;
   };
   exports.setPitch = function (ps, pitch) {
     ps.pitch = pitch;
-    if (ps.nodeSet) { nodeset.setPitch(ps.nodeSet, ps.pitch); }
+    if (ps.nodeSet) { NodeSet.setPitch(ps.nodeSet, ps.pitch); }
     return ps;
   };
   // NB: 以下のパラメータを変更できるのは停止時のみ
   exports.setPos = function (ps, pos) {
     if (ps.nodeSet) {
-      log.error(["playingstate.setPos", "should be stopped", ps, pos]);
+      Log.error(["playingstate.setPos", "should be stopped", ps, pos]);
       return ps;
     }
     ps.stoppingPos = pos;
@@ -83,7 +83,7 @@
   };
   exports.setLoopStartPos = function (ps, loopStartPos) {
     if (ps.nodeSet) {
-      log.error(["playingstate.setLoopStartPos", "cannot set in playing", ps, loopStartPos]);
+      Log.error(["playingstate.setLoopStartPos", "cannot set in playing", ps, loopStartPos]);
       return ps;
     }
     ps.loopStartPos = loopStartPos;
@@ -91,7 +91,7 @@
   };
   exports.setEndPos = function (ps, endPos) {
     if (ps.nodeSet) {
-      log.error(["playingstate.setEndPos", "cannot set in playing", ps, endPos]);
+      Log.error(["playingstate.setEndPos", "cannot set in playing", ps, endPos]);
       return ps;
     }
     ps.endPos = endPos;
@@ -101,7 +101,7 @@
   //     (以前の値を捨てるべき時と、mergeすべき時とがあり、難しい)
   exports.setEndedHandle = function (ps, endedHandle) {
     if (ps.nodeSet) {
-      log.error(["playingstate.setEndedHandle", "cannot set in playing", ps, endedHandle]);
+      Log.error(["playingstate.setEndedHandle", "cannot set in playing", ps, endedHandle]);
       return ps;
     }
     ps.endedHandle = endedHandle;
@@ -116,7 +116,7 @@
       pos =  ps.stoppingPos;
     }
     else {
-      var ac = webaudio.getAudioContext();
+      var ac = WebAudio.getAudioContext();
       var nowTimestamp = ac ? ac.currentTime : 0;
       var elapsedSec = nowTimestamp - ps.saveTimestamp;
       pos = ps.savePos + (elapsedSec * ps.pitch);
@@ -142,7 +142,7 @@
   exports.stop = function (ps) {
     var pos = exports.getPos(ps);
     if (!ps.nodeSet) { return null; }
-    nodeset.disconnect(ps.nodeSet);
+    NodeSet.disconnect(ps.nodeSet);
     ps.savePos = null;
     ps.saveTimestamp = null;
     ps.nodeSet = null;
@@ -159,7 +159,7 @@
   // 再生のやり直しをしたい場合は先に明示的にstopする事。
   exports.play = function (ps) {
     if (ps.nodeSet) { return null; }
-    var ac = webaudio.getAudioContext();
+    var ac = WebAudio.getAudioContext();
     if (!ac) { return null; }
 
     // まず最初に再生開始位置の算出を行う
@@ -169,13 +169,13 @@
     var isLoop = ps.loopStartPos != null;
     // ループ開始がループ終端を越えているなら再生しない
     if (isLoop && (endPos <= ps.loopStartPos)) {
-      log.error(["playingstate.play", "invalid loop parameters, not played", ps]);
+      Log.error(["playingstate.play", "invalid loop parameters, not played", ps]);
       return null;
     }
     // startPosがendPosを越えているなら補正する
     if (endPos <= startPos) {
       if (!isLoop) {
-        log.error(["playingstate.play", "already ended, not played", ps]);
+        Log.error(["playingstate.play", "already ended, not played", ps]);
         return null;
       }
       while (endPos <= startPos) {
@@ -192,15 +192,15 @@
       sourceNode.loopStart = ps.loopStartPos;
       sourceNode.loopEnd = ps.endPos;
     }
-    ps.nodeSet = nodeset.make(ac, sourceNode);
-    nodeset.connect(ps.nodeSet);
+    ps.nodeSet = NodeSet.make(ac, sourceNode);
+    NodeSet.connect(ps.nodeSet);
 
-    nodeset.setVolume(ps.nodeSet, ps.volume);
-    nodeset.setPan(ps.nodeSet, ps.pan);
-    nodeset.setPitch(ps.nodeSet, ps.pitch);
+    NodeSet.setVolume(ps.nodeSet, ps.volume);
+    NodeSet.setPan(ps.nodeSet, ps.pan);
+    NodeSet.setPitch(ps.nodeSet, ps.pitch);
 
     sourceNode.onended = function () {
-      log.debug(["onended", ps]);
+      Log.debug(["onended", ps]);
       exports.stop(ps);
     };
 
