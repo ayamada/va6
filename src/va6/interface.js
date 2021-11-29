@@ -73,46 +73,6 @@
 
 
 
-
-
-
-
-  // TODO: デバッグ用。最終的には消す。まずこれで音が出るようにし、そこから分化させていく
-  var debugBuf = null;
-  function prepareDebugBuf () {
-    var sec = 0.5;
-    var oac = exports.createOfflineAudioContext(sec);
-    var osc = oac.createOscillator();
-    //var hz = 440;
-    var hz = 220 + Math.floor(Math.random()*440);
-    osc.type = "square"; // sine, square, sawtooth, triangle
-    osc.frequency.setValueAtTime(hz, 0);
-    osc.detune.setValueAtTime(0, 0);
-
-    var vol = 0.1;
-    var pan = 0;
-    var ns = NodeSet.make(oac, osc, vol, pan);
-    NodeSet.connect(ns, oac.destination);
-    // TODO: attack/decay/sustain/releaseっぽく制御したい。できるか？
-    // TODO: 音楽的に複数の音を出すには？
-    // TODO: この処理を汎用的にできるか？
-    osc.start();
-    oac.startRendering().then(function(buf) {
-      debugBuf = buf;
-      osc.stop();
-      osc.disconnect();
-      NodeSet.disconnect(ns);
-      //oac.close(); // OfflineAudioContextはcloseできないらしい。startRenderingだけでもうclose状態になるようだ
-    });
-  }
-  prepareDebugBuf();
-
-  exports.debug = function () {
-    if (!debugBuf) { return; }
-    Se.playProto({buf: debugBuf});
-  };
-
-
   // nodeやworkers等でoacのみ使うケースがある
   if (typeof window !== 'undefined') {
     exports.init();
