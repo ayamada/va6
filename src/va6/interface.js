@@ -68,7 +68,11 @@
   var Se = importLoadedModule('VA6/Se');
 
 
+  //var Bgm = importLoadedModule('VA6/Bgm');
 
+
+
+  // TODO: とりあえず必要とされるインターフェースの定義だけ先にここで行うようにする
 
 
 

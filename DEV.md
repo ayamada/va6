@@ -11,10 +11,56 @@ open http://localhost:8001/demo/dev.html
 ## TODO
 
 
+より良いexportのやり方は以下らしい。今はdefaultの方を設定していないので、設定するようにしたい
+
+```
+var hoge = {...};
+module.exports = hoge; // require('hello-world-script')できるようにする
+module.exports.default = hoge; // import xxx from 'hello-world-script'できるようにする
+```
 
 - とりあえずinterface側から掘り進めるしかないと思う
     - その流れで、manager部を実装する形になると思う
+    - どこかにva5の旧interfaceで、まだ未実装なものの一覧を書いた筈だけど…
 
+
+
+- 目下の中間目標は「BGMプレイヤー」
+    - 自分の好きなBGMを全自動で適切なタイミングで再生/停止するやつ
+    - 候補のBGMは自分が過去に集めた奴の中から選択
+        - 簡易データベースを作る必要がある
+    - 自分がコンソール作業をしている時だけ再生。コンソールが一定時間放置されたら非常にゆっくりボリュームを小さくし、停止する。コンソールが再開したらまた再生
+        - どうやってコンソールの監視を行う？
+            - tmuxにそういう機能がないか探す
+            - tmuxで、カレントバッファに変動があったら特定ファイルをtouchする設定を行えば、あとはそのファイルのタイムスタンプを見れば監視できる
+                - 問題は誤判定の可能性がある事。例えばmのscreenの時計部分とか
+                    - mのscreenの時計部分は「カレントバッファ以外は見ない」事にすれば対応可能。でもそれ以外にも誤判定の要因はありそう
+    - 実装は可能ならnodeにしたいが…
+        - おそらく厳しい。electronかpuppeteerでないと駄目な気がする
+        - ちょっと調べた。できそう？
+            - 基本的には、一時ファイルに書き出してnativeの再生コマンドに渡すしかないようだ
+                - macでは `afplay` コマンドとの事
+                - https://github.com/futomi/node-wav-player がそれをやってくれる(mac以外でも)
+    - このプレイヤーの名前を決める必要がある
+        - tmp-player - うーん
+        - bgm-player - うーん
+        - bgm-manager
+        - live-player
+        - 基本的には「自分が部屋にいる」「寝てないで活動している」「音系作業をしていない」時に勝に流してほしいやつ、という事なので、この性質を示した名前にするのが望ましい
+            - 生存確認？
+            - あるいは「居るときだけプレイヤー」的な…
+        - alive-player - 生存確認は英語だと `Hey, you alive?` との事
+        - there-player - 英語だと `Are you there?` とも言うらしいので
+        - work-player - こういう系統にするしかない？
+        - env-player - 方向性としては悪くはないのだが…
+        - away-player - 意味としては逆だが通じるとは思う
+        - ...
+        - ...
+        - ...
+        - ...
+        - ...
+    - va6内に別ディレクトリを掘って開発しましょう
+        - ...
 
 
 
@@ -24,8 +70,12 @@ open http://localhost:8001/demo/dev.html
 
 - 音量フェーダーをどこに入れるか
     - とりあえずva5を確認する事！！！！優先！
-    - ...
-    - ...
+        - 調べた。フェード要求がある時だけgoスレッドを起動し、stateを参照しつつ50msec毎にボリュームを変更していく実装だった
+    - AudioParamのスケジューラを使えないか調べてみたが、非対応が多く難しい感じだった
+        - https://developer.mozilla.org/ja/docs/Web/API/AudioParam
+        - 具体的には、firefoxで未実装だったりバグで正常に動かない状態のものばかり
+            - linearRampToValueAtTime を本当は使いたいのだけど、firefoxではバグで動かない
+            - cancelAndHoldAtTime を本当は使いたいのだけど、firefoxでは未対応
     - ...
     - ...
 
@@ -76,6 +126,7 @@ open http://localhost:8001/demo/dev.html
 - package.json のメンテ
     - va5の Makefile 等を見ながら、npm run に移植していく
         - 同時にドキュメント等も整備する事
+
 
 
 
