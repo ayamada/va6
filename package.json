@@ -15,8 +15,8 @@
     "env": "env"
   },
   "devDependencies": {
-    "archiver": "5.3.0",
-    "http-server": "14.0.0",
+    "archiver": "5.3.1",
+    "http-server": "14.1.1",
     "mkdirp": "1.0.4",
     "rimraf": "3.0.2"
   },
